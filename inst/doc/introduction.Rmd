@@ -1,0 +1,240 @@
+---
+title: "Introduction to crandep"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to crandep}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+This vignette provides an introduction to the functions facilitating the analysis of the dependencies of CRAN packages.
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, message = FALSE}
+library(crandep)
+library(dplyr)
+library(ggplot2)
+library(igraph)
+```
+
+
+
+
+
+## One type of dependencies
+To obtain the information about various kinds of dependencies of a package, we can use the function `get_dep_all()` which takes the package name and the type of dependencies as the first and second arguments, respectively. Currently, the second argument accepts `Depends`, `Imports`, `LinkingTo`, `Suggests`, `Reverse_depends`, `Reverse_imports`, `Reverse_linking_to`, and `Reverse_suggests`, or any variations in their letter cases.
+
+```{r}
+get_dep_all("dplyr", "Imports")
+get_dep_all("MASS", "depends")
+get_dep_all("MASS", "dePends") # should give same result
+```
+
+`Imports` and `Depends` are the most common types of dependencies in `R` packages, but there are other types such as `Suggests`. For more information on different types of dependencies, see [the official guidelines](https://cran.r-project.org/doc/manuals/r-release/R-exts.html#Package-Dependencies) and [http://r-pkgs.had.co.nz/description.html](http://r-pkgs.had.co.nz/description.html).
+
+
+
+
+
+## Multiple types of dependencies
+As the information all dependencies of one package are on the same page on CRAN, to avoid scraping the same multiple times, we can use `get_dep_df()` instead of  `get_dep_all()`. The output will be a data frame instead of a character vector.
+
+```{r}
+get_dep_df("dplyr", c("imports", "LinkingTo"))
+```
+The column `type` is the type of the dependency converted to lower case. Also, `LinkingTo` is now converted to `linking_to` for consistency. For the four reverse dependencies, the substring `"reverse_"` will not be shown in `type`; instead the `reverse` column will be `TRUE`. This can be illustrated by the following:
+
+```{r}
+get_dep_all("abc", "depends")
+get_dep_all("abc", "reverse_depends")
+get_dep_df("abc", c("depends", "reverse_depends"))
+```
+Theoretically, for each forward dependency
+```{r, echo=FALSE}
+data.frame(from = "A", to = "B", type = "c", reverse = FALSE)
+```
+there should be an equivalent reverse dependency
+```{r, echo=FALSE}
+data.frame(from = "B", to = "A", type = "c", reverse = TRUE)
+```
+Aligning the `type` in the forward and reverse dependencies enables this to be checked easily.
+
+
+
+
+
+## Building and visualising a dependency network
+To build a dependency network, we have to obtain the dependencies for multiple packages. For illustration, we choose the [core packages of the tidyverse](https://www.tidyverse.org/packages/), and find out what each package `Imports`. We put all the dependencies into one data frame, in which the package in the `from` column imports the package in the `to` column. This is essentially the edge list of the dependency network.
+
+```{r}
+df0.imports <- rbind(
+    get_dep_df("ggplot2", "Imports"),
+    get_dep_df("dplyr", "Imports"),
+    get_dep_df("tidyr", "Imports"),
+    get_dep_df("readr", "Imports"),
+    get_dep_df("purrr", "Imports"),
+    get_dep_df("tibble", "Imports"),
+    get_dep_df("stringr", "Imports"),
+    get_dep_df("forcats", "Imports")
+)
+head(df0.imports)
+tail(df0.imports)
+```
+
+With the help of the 'igraph' package, we can use this data frame to build a graph object that represents the dependency network.
+
+```{r, out.width="660px", out.height="660px", fig.width=12, fig.height=12, fig.show="hold"}
+g0.imports <- igraph::graph_from_data_frame(df0.imports)
+set.seed(1457L)
+old.par <- par(mar = rep(0.0, 4))
+plot(g0.imports, vertex.label.cex = 1.5)
+par(old.par)
+```
+
+The nature of a dependency network makes it a directed acyclic graph (DAG). We can use the 'igraph' function `is_dag()` to check.
+
+```{r}
+igraph::is_dag(g0.imports)
+```
+
+Note that this applies to `Imports` (and `Depends`) only due to their nature. This acyclic nature does not apply to a network of, for example, `Suggests`.
+
+
+
+
+
+## Boundary and giant component
+It is possible to set a boundary on the nodes to which the edges are directed, using the function `df_to_graph()`. The second argument takes in a data frame that contains the list of such nodes in the column `name`.
+```{r, out.width="660px", out.height="660px", fig.width=12, fig.height=12, fig.show="hold"}
+df0.nodes <- data.frame(name = c("ggplot2", "dplyr", "tidyr", "readr", "purrr", "tibble", "stringr", "forcats"), stringsAsFactors = FALSE)
+g0.core <- df_to_graph(df0.imports, df0.nodes)
+set.seed(259L)
+old.par <- par(mar = rep(0.0, 4))
+plot(g0.core, vertex.label.cex = 1.5)
+par(old.par)
+```
+
+
+
+
+
+## Topological ordering of nodes
+Since networks according to `Imports` or `Depends` are DAGs, we can obtain the [topological ordering](https://en.wikipedia.org/wiki/Topological_sorting) using, for example, [Kahn's (1962) sorting algorithm](https://doi.org/10.1145/368996.369025).
+
+```{r}
+topo_sort_kahn(g0.core)
+```
+In the topological ordering, represented by the column `id_num`, a low (high) number represents being at the front (back) of the ordering. If package A `Imports` package B i.e. there is a directed edge from A to B, then A will be topologically before B. As the package 'tibble' doesn't import any package but is imported by most other packages, it naturally goes to the back of the ordering. This ordering may not be unique for a DAG, and other admissible orderings can be obtained by setting `random=TRUE` in the function:
+```{r}
+set.seed(387L); topo_sort_kahn(g0.core, random = TRUE)
+```
+We can also apply the topological sorting to the bigger dependencies network.
+```{r}
+df0.topo <- topo_sort_kahn(g0.imports)
+head(df0.topo)
+tail(df0.topo)
+```
+
+
+
+
+
+## The dependency network of all CRAN packages
+Ultimately, we can use `get_dep_df()` to obtain **all** dependencies of [**all** packages available on CRAN](https://cran.r-project.org/web/packages/available_packages_by_name.html). This package provides an example dataset `cran_dependencies` that contains all such dependencies as of 2020-05-09.
+```{r}
+data(cran_dependencies)
+cran_dependencies
+```
+We can build dependency network in the same way as above. Furthermore, we can verify that the forward and reverse dependency networks are (almost) the same.
+```{r}
+g0.depends <- cran_dependencies %>%
+    dplyr::filter(type == "depends" & !reverse) %>%
+    df_to_graph(nodelist = dplyr::rename(cran_dependencies, name = from))
+g0.rev_depends <- cran_dependencies %>%
+    dplyr::filter(type == "depends" & reverse) %>%
+    df_to_graph(nodelist = dplyr::rename(cran_dependencies, name = from))
+g0.depends
+g0.rev_depends
+```
+Their size (number of edges) and order (number of nodes) should be very close if not identical to each other. Because of the dependency direction, their edge lists should be the same but with the column names `from` and `to` swapped.
+
+
+
+
+
+## External reverse dependencies & defunct packages
+One may notice that there are external reverse dependencies which won't be appear in the forward dependencies if the scraping is limited to CRAN packages. We can find these external reverse dependencies by `nodelist = NULL` in `df_to_graph()`:
+```{r}
+df1.rev_depends <- cran_dependencies %>%
+    dplyr::filter(type == "depends" & reverse) %>%
+    df_to_graph(nodelist = NULL, gc = FALSE) %>%
+    igraph::as_data_frame() # to obtain the edge list
+df1.depends <- cran_dependencies %>%
+    dplyr::filter(type == "depends" & !reverse) %>%
+    df_to_graph(nodelist = NULL, gc = FALSE) %>%
+    igraph::as_data_frame()
+dfa.diff.depends <- dplyr::anti_join(
+    df1.rev_depends,
+    df1.depends,
+    c("from" = "to", "to" = "from")
+)
+head(dfa.diff.depends)
+```
+This means we are extracting the reverse dependencies of which the forward equivalents are not listed. The column `to` shows the packages external to CRAN. On the other hand, if we apply `dplyr::anti_join()` by switching the order of two edge lists,
+```{r}
+dfb.diff.depends <- dplyr::anti_join(
+    df1.depends,
+    df1.rev_depends,
+    c("from" = "to", "to" = "from")
+)
+head(dfb.diff.depends)
+```
+the column `to` lists those which are not on the [page of available packages](https://cran.r-project.org/web/packages/available_packages_by_name.html) (anymore). These are either defunct or core packages.
+
+
+
+
+
+## Summary statistics
+We can also obtain the degree for each package and each type:
+```{r}
+df0.summary <- dplyr::count(cran_dependencies, from, type, reverse)
+df0.summary
+```
+We can look at the "winner" in each of the reverse dependencies:
+```{r}
+df0.summary %>%
+    dplyr::filter(reverse) %>%
+    dplyr::group_by(type) %>%
+    dplyr::top_n(1, n)
+```
+This is not surprising given the nature of each package. To take the summarisation one step further, we can obtain the frequencies of the degrees, and visualise the empirical degree distribution neatly on the log-log scale:
+```{r, out.width="660px", out.height="660px", fig.width=9, fig.height=9}
+df1.summary <- df0.summary %>%
+    dplyr::count(type, reverse, n)
+gg0.summary <- df1.summary %>%
+    dplyr::mutate(reverse = ifelse(reverse, "reverse", "forward")) %>%
+    ggplot2::ggplot() +
+    ggplot2::geom_point(ggplot2::aes(n, nn)) +
+    ggplot2::facet_grid(type ~ reverse) +
+    ggplot2::scale_x_log10() +
+    ggplot2::scale_y_log10() +
+    ggplot2::labs(x = "Degree", y = "Number of packages") +
+    ggplot2::theme_bw(20)
+gg0.summary
+```
+This shows the reverse dependencies, in particular `Reverse_depends` and `Reverse_imports`, follow the [power law](https://en.wikipedia.org/wiki/Power-law), which is empirically observed in various academic fields.
+
+
+
+
+
+## Going forward
+Methods in social network analysis, such as community detection algorithms and/or stochastic block models, can be applied to study the properties of the dependency network. Ideally, by analysing the dependencies of all CRAN packages, we can obtain a bird's-eye view of the ecosystem.
