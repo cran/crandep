@@ -7,20 +7,18 @@ knitr::opts_chunk$set(
 ## ----setup, message = FALSE---------------------------------------------------
 library(crandep)
 library(dplyr)
-library(ggplot2)
 library(igraph)
 
 ## -----------------------------------------------------------------------------
-get_dep_all("dplyr", "Imports")
-get_dep_all("MASS", "depends")
-get_dep_all("MASS", "dePends") # should give same result
+get_dep("dplyr", "Imports")
+get_dep("MASS", "depends")
 
 ## -----------------------------------------------------------------------------
 get_dep_df("dplyr", c("imports", "LinkingTo"))
 
 ## -----------------------------------------------------------------------------
-get_dep_all("abc", "depends")
-get_dep_all("abc", "reverse_depends")
+get_dep("abc", "depends")
+get_dep("abc", "reverse_depends")
 get_dep_df("abc", c("depends", "reverse_depends"))
 
 ## ---- echo=FALSE--------------------------------------------------------------
@@ -28,6 +26,16 @@ data.frame(from = "A", to = "B", type = "c", reverse = FALSE)
 
 ## ---- echo=FALSE--------------------------------------------------------------
 data.frame(from = "B", to = "A", type = "c", reverse = TRUE)
+
+## -----------------------------------------------------------------------------
+df0.abc <- get_dep_df("abc", "all")
+df0.abc
+df0.rstan <- get_dep_df("rstan", "all")
+dplyr::count(df0.rstan, type, reverse) # all 8 types
+
+## ----echo=FALSE---------------------------------------------------------------
+df0.all <- get_dep_all_packages()
+v0.all <- df0.all %>% group_by(from) %>% count(a = n_distinct(type, reverse)) %>% filter(a == 8L)
 
 ## -----------------------------------------------------------------------------
 df0.imports <- rbind(
@@ -71,66 +79,4 @@ set.seed(387L); topo_sort_kahn(g0.core, random = TRUE)
 df0.topo <- topo_sort_kahn(g0.imports)
 head(df0.topo)
 tail(df0.topo)
-
-## -----------------------------------------------------------------------------
-data(cran_dependencies)
-cran_dependencies
-
-## -----------------------------------------------------------------------------
-g0.depends <- cran_dependencies %>%
-    dplyr::filter(type == "depends" & !reverse) %>%
-    df_to_graph(nodelist = dplyr::rename(cran_dependencies, name = from))
-g0.rev_depends <- cran_dependencies %>%
-    dplyr::filter(type == "depends" & reverse) %>%
-    df_to_graph(nodelist = dplyr::rename(cran_dependencies, name = from))
-g0.depends
-g0.rev_depends
-
-## -----------------------------------------------------------------------------
-df1.rev_depends <- cran_dependencies %>%
-    dplyr::filter(type == "depends" & reverse) %>%
-    df_to_graph(nodelist = NULL, gc = FALSE) %>%
-    igraph::as_data_frame() # to obtain the edge list
-df1.depends <- cran_dependencies %>%
-    dplyr::filter(type == "depends" & !reverse) %>%
-    df_to_graph(nodelist = NULL, gc = FALSE) %>%
-    igraph::as_data_frame()
-dfa.diff.depends <- dplyr::anti_join(
-    df1.rev_depends,
-    df1.depends,
-    c("from" = "to", "to" = "from")
-)
-head(dfa.diff.depends)
-
-## -----------------------------------------------------------------------------
-dfb.diff.depends <- dplyr::anti_join(
-    df1.depends,
-    df1.rev_depends,
-    c("from" = "to", "to" = "from")
-)
-head(dfb.diff.depends)
-
-## -----------------------------------------------------------------------------
-df0.summary <- dplyr::count(cran_dependencies, from, type, reverse)
-df0.summary
-
-## -----------------------------------------------------------------------------
-df0.summary %>%
-    dplyr::filter(reverse) %>%
-    dplyr::group_by(type) %>%
-    dplyr::top_n(1, n)
-
-## ---- out.width="660px", out.height="660px", fig.width=9, fig.height=9--------
-df1.summary <- df0.summary %>%
-    dplyr::count(type, reverse, n)
-gg0.summary <- df1.summary %>%
-    dplyr::mutate(reverse = ifelse(reverse, "reverse", "forward")) %>%
-    ggplot2::ggplot() +
-    ggplot2::geom_point(ggplot2::aes(n, nn)) +
-    ggplot2::facet_grid(type ~ reverse) +
-    ggplot2::scale_x_log10() +
-    ggplot2::scale_y_log10() +
-    ggplot2::labs(x = "Degree", y = "Number of packages") +
-    ggplot2::theme_bw(20)
-gg0.summary
 
