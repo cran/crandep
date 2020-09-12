@@ -9,5 +9,19 @@
 #'   \item{type}{the type of dependency, which can take the follow values (all in lowercase): "depends", "imports", "linking to", "suggests"}
 #'   \item{reverse}{a boolean representing whether the dependency is a reverse one (TRUE) or a forward one (FALSE)}
 #' }
-#' @source The CRAN pages of all the packages available on \url{https://cran.r-project.org/web/packages/available_packages_by_name.html}
+#' @source The CRAN pages of all the packages available on \url{https://cran.r-project.org}
 "cran_dependencies"
+
+#' Citation network of CHI papers
+#'
+#' A dataset containing the citations of conference papers of the ACM Conference on Human Factors in Computing Systems (CHI) from 1981 to 2019, obtained from the ACM digital library. The resulting citation network can be compared to the dependencies network of CRAN packages, in terms of network-related characteristics, such as degree distribution and sparsity.
+#'
+#' @format A data from with21951 rows and 4 variables:
+#' \describe{
+#'   \item{from}{the unique identifier (in the digital library) of the paper that cites other papers}
+#'   \item{to}{the unique identifier of the paper that is being cited}
+#'   \item{year_from}{the publication year of the citing paper}
+#'   \item{year_to}{the publication year of the cited paper}
+#' }
+#' @source \url{https://dl.acm.org/conference/chi}
+"chi_citations"

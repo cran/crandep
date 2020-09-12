@@ -316,7 +316,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <a class="sourceLine" id="cb2-4" title="4"><span class="co">#&gt; [11] &quot;utils&quot;      &quot;vctrs&quot;</span></a>
 <a class="sourceLine" id="cb2-5" title="5"><span class="kw">get_dep</span>(<span class="st">&quot;MASS&quot;</span>, <span class="st">&quot;depends&quot;</span>)</a>
 <a class="sourceLine" id="cb2-6" title="6"><span class="co">#&gt; [1] &quot;grDevices&quot; &quot;graphics&quot;  &quot;stats&quot;     &quot;utils&quot;</span></a></code></pre></div>
-<p>We only consider the 4 most common types of dependencies in R packages, namely <code>Imports</code>, <code>Depends</code>, <code>Suggests</code> and <code>LinkingTo</code>, and their reverse counterparts. For more information on different types of dependencies, see <a href="https://cran.r-project.org/doc/manuals/r-release/R-exts.html#Package-Dependencies">the official guidelines</a> and <a href="http://r-pkgs.had.co.nz/description.html">http://r-pkgs.had.co.nz/description.html</a>.</p>
+<p>We only consider the 4 most common types of dependencies in R packages, namely <code>Imports</code>, <code>Depends</code>, <code>Suggests</code> and <code>LinkingTo</code>, and their reverse counterparts. For more information on different types of dependencies, see <a href="https://cran.r-project.org/doc/manuals/r-release/R-exts.html#Package-Dependencies">the official guidelines</a> and <a href="https://r-pkgs.org/description.html">https://r-pkgs.org/description.html</a>.</p>
 </div>
 <div id="multiple-types-of-dependencies" class="section level2">
 <h2>Multiple types of dependencies</h2>
@@ -374,14 +374,14 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <a class="sourceLine" id="cb7-15" title="15">dplyr<span class="op">::</span><span class="kw">count</span>(df0.rstan, type, reverse) <span class="co"># all 8 types</span></a>
 <a class="sourceLine" id="cb7-16" title="16"><span class="co">#&gt;         type reverse  n</span></a>
 <a class="sourceLine" id="cb7-17" title="17"><span class="co">#&gt; 1    depends   FALSE  2</span></a>
-<a class="sourceLine" id="cb7-18" title="18"><span class="co">#&gt; 2    depends    TRUE 21</span></a>
+<a class="sourceLine" id="cb7-18" title="18"><span class="co">#&gt; 2    depends    TRUE 23</span></a>
 <a class="sourceLine" id="cb7-19" title="19"><span class="co">#&gt; 3    imports   FALSE 10</span></a>
-<a class="sourceLine" id="cb7-20" title="20"><span class="co">#&gt; 4    imports    TRUE 63</span></a>
+<a class="sourceLine" id="cb7-20" title="20"><span class="co">#&gt; 4    imports    TRUE 64</span></a>
 <a class="sourceLine" id="cb7-21" title="21"><span class="co">#&gt; 5 linking to   FALSE  5</span></a>
-<a class="sourceLine" id="cb7-22" title="22"><span class="co">#&gt; 6 linking to    TRUE 50</span></a>
+<a class="sourceLine" id="cb7-22" title="22"><span class="co">#&gt; 6 linking to    TRUE 52</span></a>
 <a class="sourceLine" id="cb7-23" title="23"><span class="co">#&gt; 7   suggests   FALSE 12</span></a>
-<a class="sourceLine" id="cb7-24" title="24"><span class="co">#&gt; 8   suggests    TRUE 19</span></a></code></pre></div>
-<p>As of 2020-08-11, the packages that have all 8 types of dependencies are gRbase, rstan, sf, stochvol, xts.</p>
+<a class="sourceLine" id="cb7-24" title="24"><span class="co">#&gt; 8   suggests    TRUE 20</span></a></code></pre></div>
+<p>As of 2020-09-11, the packages that have all 8 types of dependencies are gRbase, quanteda, rstan, sf, stochvol, xts.</p>
 </div>
 <div id="building-and-visualising-a-dependency-network" class="section level2">
 <h2>Building and visualising a dependency network</h2>
