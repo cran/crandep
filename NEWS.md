@@ -1,14 +1,22 @@
-# crandep 0.1.1 (2020-09-)
+# crandep 0.2.0 (2021-04-)
 
 ## Functions
 
 - Examples in internal functions `html_text_vec()`, `get_dep_str()` and `get_dep_vec()` removed to minimise the errors due to no internet connection and/or timeout.
+
+- Multiple dependencies are now allowed in the `type` argument in `get_graph_all_packages()`.
+
+- Arguments `give_log` in `dupp()` & `dmix()` changed to `log` without changing the functionality. For uniformity, `Supp()` & `Smix()` are also given the additional argument `log`.
+
+- The ordering of arguments in the funcions `*mix()` is made consistent.
 
 ## Vignettes
 
 - For the vignette on dependencies of all CRAN packages, community detection is added.
 
 - Replace https://cran.r-project.org/web/packages/available_packages_by_name.html by https://cran.r-project.org, in the dependency network vignette, to prevent NOTE on possibly invalid URL.
+
+- In the vignette on modelling the number of reverse dependencies, a section on fitting extreme value mixture distribution is added.
 
 ## Data
 

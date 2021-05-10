@@ -1,4 +1,4 @@
-## ---- include = FALSE---------------------------------------------------------
+## ----invisible_setup, include = FALSE-----------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
@@ -11,37 +11,43 @@ library(ggplot2)
 library(igraph)
 library(visNetwork)
 
-## -----------------------------------------------------------------------------
+## ----cran_dependencies--------------------------------------------------------
 data(cran_dependencies)
 cran_dependencies
 dplyr::count(cran_dependencies, type, reverse)
 
-## -----------------------------------------------------------------------------
+## ----get_dep_all_packages-----------------------------------------------------
 df0.cran <- get_dep_all_packages()
 head(df0.cran)
 dplyr::count(df0.cran, type, reverse) # numbers in general larger than above
 
-## -----------------------------------------------------------------------------
+## ----get_graph_all_packages---------------------------------------------------
 g0.depends <- get_graph_all_packages(type = "depends")
-g0.rev_depends <- get_graph_all_packages(type = "reverse depends")
 g0.depends
-g0.rev_depends
 
-## -----------------------------------------------------------------------------
+## ----get_graph_all_packages_rev, eval = FALSE---------------------------------
+#  # Not run
+#  g0.rev_depends <- get_graph_all_packages(type = "reverse depends")
+#  g0.rev_depends
+
+## ----forward_equivalent-------------------------------------------------------
 g1.depends <- df0.cran %>%
     dplyr::filter(type == "depends" & !reverse) %>%
     df_to_graph(nodelist = dplyr::rename(df0.cran, name = from))
-g1.rev_depends <- df0.cran %>%
-    dplyr::filter(type == "depends" & reverse) %>%
-    df_to_graph(nodelist = dplyr::rename(df0.cran, name = from))
 g1.depends # same as g0.depends
-g1.rev_depends # same as g0.rev_depends
 
-## -----------------------------------------------------------------------------
+## ----reverse_equivalent, eval = FALSE-----------------------------------------
+#  # Not run
+#  g1.rev_depends <- df0.cran %>%
+#      dplyr::filter(type == "depends" & reverse) %>%
+#      df_to_graph(nodelist = dplyr::rename(df0.cran, name = from))
+#  g1.rev_depends # should be same as g0.rev_depends
+
+## ----is_dag-------------------------------------------------------------------
 igraph::is_dag(g0.depends)
-igraph::is_dag(g0.rev_depends)
+igraph::is_dag(g1.depends)
 
-## -----------------------------------------------------------------------------
+## ----external_rev_defunct-----------------------------------------------------
 df1.rev_depends <- df0.cran %>%
     dplyr::filter(type == "depends" & reverse) %>%
     df_to_graph(nodelist = NULL, gc = FALSE) %>%
@@ -57,7 +63,7 @@ dfa.diff.depends <- dplyr::anti_join(
 )
 head(dfa.diff.depends)
 
-## -----------------------------------------------------------------------------
+## ----external_rev_defunct_again-----------------------------------------------
 dfb.diff.depends <- dplyr::anti_join(
     df1.depends,
     df1.rev_depends,
@@ -65,17 +71,17 @@ dfb.diff.depends <- dplyr::anti_join(
 )
 head(dfb.diff.depends)
 
-## -----------------------------------------------------------------------------
+## ----summary------------------------------------------------------------------
 df0.summary <- dplyr::count(df0.cran, from, type, reverse)
 head(df0.summary)
 
-## -----------------------------------------------------------------------------
+## ----tops---------------------------------------------------------------------
 df0.summary %>%
     dplyr::filter(reverse) %>%
     dplyr::group_by(type) %>%
     dplyr::top_n(1, n)
 
-## ---- out.width="660px", out.height="660px", fig.width=9, fig.height=9--------
+## ----summary_plot, out.width="660px", out.height="660px", fig.width=9, fig.height=9----
 df1.summary <- df0.summary %>%
     dplyr::count(type, reverse, n)
 gg0.summary <- df1.summary %>%
@@ -89,19 +95,14 @@ gg0.summary <- df1.summary %>%
     ggplot2::theme_bw(20)
 gg0.summary
 
-## -----------------------------------------------------------------------------
+## ----visualise----------------------------------------------------------------
 prefix <- "http://CRAN.R-project.org/package=" # canonical form
 degrees <- igraph::degree(g0.depends)
-set.seed(3579L)
-clusters <- igraph::membership(igraph::cluster_spinglass(g0.depends))
-df0.nodes <- dplyr::full_join(
-    data.frame(id = names(degrees), value = degrees),
-	data.frame(id = names(clusters), group = as.character(clusters)),
-	"id") %>%
+df0.nodes <- data.frame(id = names(degrees), value = degrees) %>%
     dplyr::mutate(title = paste0('<a href=\"', prefix, id, '\">', id, '</a>'))
 df0.edges <- igraph::as_data_frame(g0.depends, what = "edges")
 
-## -----------------------------------------------------------------------------
+## ----visNetwork---------------------------------------------------------------
 set.seed(2345L)
 vis0 <- visNetwork::visNetwork(df0.nodes, df0.edges, width = "100%", height = "720px") %>%
     visNetwork::visOptions(highlightNearest = TRUE) %>%

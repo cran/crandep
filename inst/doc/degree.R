@@ -116,3 +116,15 @@ gg2 <- df1.imports %>%
 	ggplot2::theme_bw(12)
 gg2
 
+## -----------------------------------------------------------------------------
+Smix.imports <- Smix(df1.imports$degree, 146, 1.58, 0.68, 30.4, FALSE, 0.0172)
+gg3 <- df1.imports %>%
+    dplyr::mutate(survival.mix = Smix.imports) %>%
+    ggplot2::ggplot() +
+	ggplot2::geom_point(aes(degree, survival), size = 0.75) +
+	ggplot2::geom_line(aes(degree, survival.mix), col = 4, lty = 2) +
+	ggplot2::scale_x_log10() +
+	ggplot2::scale_y_log10() +
+	ggplot2::theme_bw(12)
+gg3
+
