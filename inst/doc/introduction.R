@@ -11,15 +11,15 @@ library(igraph)
 
 ## -----------------------------------------------------------------------------
 get_dep("dplyr", "Imports")
-get_dep("MASS", "depends")
+get_dep("MASS", c("depends", "suggests"))
 
 ## -----------------------------------------------------------------------------
-get_dep_df("dplyr", c("imports", "LinkingTo"))
+get_dep("xts", "LinkingTo")
+get_dep("xts", "linking to")
 
 ## -----------------------------------------------------------------------------
-get_dep("abc", "depends")
-get_dep("abc", "reverse_depends")
-get_dep_df("abc", c("depends", "reverse_depends"))
+get_dep("abc", c("depends", "reverse_depends"))
+get_dep("xts", c("linking to", "reverse linking to"))
 
 ## ---- echo=FALSE--------------------------------------------------------------
 data.frame(from = "A", to = "B", type = "c", reverse = FALSE)
@@ -28,25 +28,26 @@ data.frame(from = "A", to = "B", type = "c", reverse = FALSE)
 data.frame(from = "B", to = "A", type = "c", reverse = TRUE)
 
 ## -----------------------------------------------------------------------------
-df0.abc <- get_dep_df("abc", "all")
+df0.abc <- get_dep("abc", "all")
 df0.abc
-df0.rstan <- get_dep_df("rstan", "all")
-dplyr::count(df0.rstan, type, reverse) # all 8 types
+df0.rstan <- get_dep("rstan", "all") # too many rows to display
+dplyr::count(df0.rstan, type, reverse) # hence the summary using count()
 
 ## ----echo=FALSE---------------------------------------------------------------
 df0.all <- get_dep_all_packages()
-v0.all <- df0.all %>% group_by(from) %>% count(a = n_distinct(type, reverse)) %>% filter(a == 8L)
+v9.all <- df0.all %>% group_by(from) %>% count(a = n_distinct(type, reverse)) %>% filter(a == 9L) %>% "[["("from")
+v0.all <- df0.all %>% group_by(from) %>% count(a = n_distinct(type, reverse)) %>% filter(a == 10L) %>% "[["("from")
 
 ## -----------------------------------------------------------------------------
 df0.imports <- rbind(
-    get_dep_df("ggplot2", "Imports"),
-    get_dep_df("dplyr", "Imports"),
-    get_dep_df("tidyr", "Imports"),
-    get_dep_df("readr", "Imports"),
-    get_dep_df("purrr", "Imports"),
-    get_dep_df("tibble", "Imports"),
-    get_dep_df("stringr", "Imports"),
-    get_dep_df("forcats", "Imports")
+    get_dep("ggplot2", "Imports"),
+    get_dep("dplyr", "Imports"),
+    get_dep("tidyr", "Imports"),
+    get_dep("readr", "Imports"),
+    get_dep("purrr", "Imports"),
+    get_dep("tibble", "Imports"),
+    get_dep("stringr", "Imports"),
+    get_dep("forcats", "Imports")
 )
 head(df0.imports)
 tail(df0.imports)

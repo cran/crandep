@@ -11,7 +11,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 
 
-<meta name="date" content="2020-08-10" />
+<meta name="date" content="2021-06-10" />
 
 <title>Introduction to crandep</title>
 
@@ -299,57 +299,65 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 <h1 class="title toc-ignore">Introduction to crandep</h1>
-<h4 class="date">2020-08-10</h4>
+<h4 class="date">2021-06-10</h4>
 
 
 
-<p>This vignette provides an introduction to the functions facilitating the analysis of the dependencies of CRAN packages, specifically <code>get_dep()</code>, <code>get_dep_df()</code>, <code>df_to_graph()</code> and <code>topo_sort_kahn()</code>.</p>
+<p>This vignette provides an introduction to the functions facilitating the analysis of the dependencies of CRAN packages, specifically <code>get_dep()</code>, <code>df_to_graph()</code> and <code>topo_sort_kahn()</code>.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" title="1"><span class="kw">library</span>(crandep)</a>
 <a class="sourceLine" id="cb1-2" title="2"><span class="kw">library</span>(dplyr)</a>
 <a class="sourceLine" id="cb1-3" title="3"><span class="kw">library</span>(igraph)</a></code></pre></div>
-<div id="one-type-of-dependencies" class="section level2">
-<h2>One type of dependencies</h2>
-<p>To obtain the information about various kinds of dependencies of a package, we can use the function <code>get_dep()</code> which takes the package name and the type of dependencies as the first and second arguments, respectively. Currently, the second argument accepts <code>Depends</code>, <code>Imports</code>, <code>LinkingTo</code>, <code>Suggests</code>, <code>Reverse_depends</code>, <code>Reverse_imports</code>, <code>Reverse_linking_to</code>, and <code>Reverse_suggests</code>, or any variations in their letter cases, or if the underscore &quot;_&quot; is replaced by a space.</p>
+<div id="one-or-multiple-types-of-dependencies" class="section level2">
+<h2>One or multiple types of dependencies</h2>
+<p>To obtain the information about various kinds of dependencies of a package, we can use the function <code>get_dep()</code> which takes the package name and the type of dependencies as the first and second arguments, respectively. Currently, the second argument accepts a character vector of one or more of the following words: <code>Depends</code>, <code>Imports</code>, <code>LinkingTo</code>, <code>Suggests</code>, <code>Enhances</code>, <code>Reverse_depends</code>, <code>Reverse_imports</code>, <code>Reverse_linking_to</code>, <code>Reverse_suggests</code>, and <code>Reverse_enhances</code>, or any variations in their letter cases, or if the underscore &quot;_&quot; is replaced by a space.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" title="1"><span class="kw">get_dep</span>(<span class="st">&quot;dplyr&quot;</span>, <span class="st">&quot;Imports&quot;</span>)</a>
-<a class="sourceLine" id="cb2-2" title="2"><span class="co">#&gt;  [1] &quot;ellipsis&quot;   &quot;generics&quot;   &quot;glue&quot;       &quot;lifecycle&quot;  &quot;magrittr&quot;  </span></a>
-<a class="sourceLine" id="cb2-3" title="3"><span class="co">#&gt;  [6] &quot;methods&quot;    &quot;R6&quot;         &quot;rlang&quot;      &quot;tibble&quot;     &quot;tidyselect&quot;</span></a>
-<a class="sourceLine" id="cb2-4" title="4"><span class="co">#&gt; [11] &quot;utils&quot;      &quot;vctrs&quot;      &quot;pillar&quot;</span></a>
-<a class="sourceLine" id="cb2-5" title="5"><span class="kw">get_dep</span>(<span class="st">&quot;MASS&quot;</span>, <span class="st">&quot;depends&quot;</span>)</a>
-<a class="sourceLine" id="cb2-6" title="6"><span class="co">#&gt; [1] &quot;grDevices&quot; &quot;graphics&quot;  &quot;stats&quot;     &quot;utils&quot;</span></a></code></pre></div>
-<p>We only consider the 4 most common types of dependencies in R packages, namely <code>Imports</code>, <code>Depends</code>, <code>Suggests</code> and <code>LinkingTo</code>, and their reverse counterparts. For more information on different types of dependencies, see <a href="https://cran.r-project.org/doc/manuals/r-release/R-exts.html#Package-Dependencies">the official guidelines</a> and <a href="https://r-pkgs.org/description.html">https://r-pkgs.org/description.html</a>.</p>
-</div>
-<div id="multiple-types-of-dependencies" class="section level2">
-<h2>Multiple types of dependencies</h2>
-<p>As the information all dependencies of one package are on the same page on CRAN, to avoid scraping the same multiple times, we can use <code>get_dep_df()</code> instead of <code>get_dep()</code>. The output will be a data frame instead of a character vector.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" title="1"><span class="kw">get_dep_df</span>(<span class="st">&quot;dplyr&quot;</span>, <span class="kw">c</span>(<span class="st">&quot;imports&quot;</span>, <span class="st">&quot;LinkingTo&quot;</span>))</a>
-<a class="sourceLine" id="cb3-2" title="2"><span class="co">#&gt;     from         to    type reverse</span></a>
-<a class="sourceLine" id="cb3-3" title="3"><span class="co">#&gt; 1  dplyr   ellipsis imports   FALSE</span></a>
-<a class="sourceLine" id="cb3-4" title="4"><span class="co">#&gt; 2  dplyr   generics imports   FALSE</span></a>
-<a class="sourceLine" id="cb3-5" title="5"><span class="co">#&gt; 3  dplyr       glue imports   FALSE</span></a>
-<a class="sourceLine" id="cb3-6" title="6"><span class="co">#&gt; 4  dplyr  lifecycle imports   FALSE</span></a>
-<a class="sourceLine" id="cb3-7" title="7"><span class="co">#&gt; 5  dplyr   magrittr imports   FALSE</span></a>
-<a class="sourceLine" id="cb3-8" title="8"><span class="co">#&gt; 6  dplyr    methods imports   FALSE</span></a>
-<a class="sourceLine" id="cb3-9" title="9"><span class="co">#&gt; 7  dplyr         R6 imports   FALSE</span></a>
-<a class="sourceLine" id="cb3-10" title="10"><span class="co">#&gt; 8  dplyr      rlang imports   FALSE</span></a>
-<a class="sourceLine" id="cb3-11" title="11"><span class="co">#&gt; 9  dplyr     tibble imports   FALSE</span></a>
-<a class="sourceLine" id="cb3-12" title="12"><span class="co">#&gt; 10 dplyr tidyselect imports   FALSE</span></a>
-<a class="sourceLine" id="cb3-13" title="13"><span class="co">#&gt; 11 dplyr      utils imports   FALSE</span></a>
-<a class="sourceLine" id="cb3-14" title="14"><span class="co">#&gt; 12 dplyr      vctrs imports   FALSE</span></a>
-<a class="sourceLine" id="cb3-15" title="15"><span class="co">#&gt; 13 dplyr     pillar imports   FALSE</span></a></code></pre></div>
-<p>The column <code>type</code> is the type of the dependency converted to lower case. Also, <code>LinkingTo</code> is now converted to <code>linking to</code> for consistency. For the four reverse dependencies, the substring <code>&quot;reverse_&quot;</code> will not be shown in <code>type</code>; instead the <code>reverse</code> column will be <code>TRUE</code>. This can be illustrated by the following:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" title="1"><span class="kw">get_dep</span>(<span class="st">&quot;abc&quot;</span>, <span class="st">&quot;depends&quot;</span>)</a>
-<a class="sourceLine" id="cb4-2" title="2"><span class="co">#&gt; [1] &quot;abc.data&quot; &quot;nnet&quot;     &quot;quantreg&quot; &quot;MASS&quot;     &quot;locfit&quot;</span></a>
-<a class="sourceLine" id="cb4-3" title="3"><span class="kw">get_dep</span>(<span class="st">&quot;abc&quot;</span>, <span class="st">&quot;reverse_depends&quot;</span>)</a>
-<a class="sourceLine" id="cb4-4" title="4"><span class="co">#&gt; [1] &quot;abctools&quot; &quot;EasyABC&quot;</span></a>
-<a class="sourceLine" id="cb4-5" title="5"><span class="kw">get_dep_df</span>(<span class="st">&quot;abc&quot;</span>, <span class="kw">c</span>(<span class="st">&quot;depends&quot;</span>, <span class="st">&quot;reverse_depends&quot;</span>))</a>
-<a class="sourceLine" id="cb4-6" title="6"><span class="co">#&gt;   from       to    type reverse</span></a>
-<a class="sourceLine" id="cb4-7" title="7"><span class="co">#&gt; 1  abc abc.data depends   FALSE</span></a>
-<a class="sourceLine" id="cb4-8" title="8"><span class="co">#&gt; 2  abc     nnet depends   FALSE</span></a>
-<a class="sourceLine" id="cb4-9" title="9"><span class="co">#&gt; 3  abc quantreg depends   FALSE</span></a>
-<a class="sourceLine" id="cb4-10" title="10"><span class="co">#&gt; 4  abc     MASS depends   FALSE</span></a>
-<a class="sourceLine" id="cb4-11" title="11"><span class="co">#&gt; 5  abc   locfit depends   FALSE</span></a>
-<a class="sourceLine" id="cb4-12" title="12"><span class="co">#&gt; 6  abc abctools depends    TRUE</span></a>
-<a class="sourceLine" id="cb4-13" title="13"><span class="co">#&gt; 7  abc  EasyABC depends    TRUE</span></a></code></pre></div>
+<a class="sourceLine" id="cb2-2" title="2"><span class="co">#&gt;     from         to    type reverse</span></a>
+<a class="sourceLine" id="cb2-3" title="3"><span class="co">#&gt; 1  dplyr   ellipsis imports   FALSE</span></a>
+<a class="sourceLine" id="cb2-4" title="4"><span class="co">#&gt; 2  dplyr   generics imports   FALSE</span></a>
+<a class="sourceLine" id="cb2-5" title="5"><span class="co">#&gt; 3  dplyr       glue imports   FALSE</span></a>
+<a class="sourceLine" id="cb2-6" title="6"><span class="co">#&gt; 4  dplyr  lifecycle imports   FALSE</span></a>
+<a class="sourceLine" id="cb2-7" title="7"><span class="co">#&gt; 5  dplyr   magrittr imports   FALSE</span></a>
+<a class="sourceLine" id="cb2-8" title="8"><span class="co">#&gt; 6  dplyr    methods imports   FALSE</span></a>
+<a class="sourceLine" id="cb2-9" title="9"><span class="co">#&gt; 7  dplyr         R6 imports   FALSE</span></a>
+<a class="sourceLine" id="cb2-10" title="10"><span class="co">#&gt; 8  dplyr      rlang imports   FALSE</span></a>
+<a class="sourceLine" id="cb2-11" title="11"><span class="co">#&gt; 9  dplyr     tibble imports   FALSE</span></a>
+<a class="sourceLine" id="cb2-12" title="12"><span class="co">#&gt; 10 dplyr tidyselect imports   FALSE</span></a>
+<a class="sourceLine" id="cb2-13" title="13"><span class="co">#&gt; 11 dplyr      utils imports   FALSE</span></a>
+<a class="sourceLine" id="cb2-14" title="14"><span class="co">#&gt; 12 dplyr      vctrs imports   FALSE</span></a>
+<a class="sourceLine" id="cb2-15" title="15"><span class="co">#&gt; 13 dplyr     pillar imports   FALSE</span></a>
+<a class="sourceLine" id="cb2-16" title="16"><span class="kw">get_dep</span>(<span class="st">&quot;MASS&quot;</span>, <span class="kw">c</span>(<span class="st">&quot;depends&quot;</span>, <span class="st">&quot;suggests&quot;</span>))</a>
+<a class="sourceLine" id="cb2-17" title="17"><span class="co">#&gt;   from        to     type reverse</span></a>
+<a class="sourceLine" id="cb2-18" title="18"><span class="co">#&gt; 1 MASS grDevices  depends   FALSE</span></a>
+<a class="sourceLine" id="cb2-19" title="19"><span class="co">#&gt; 2 MASS  graphics  depends   FALSE</span></a>
+<a class="sourceLine" id="cb2-20" title="20"><span class="co">#&gt; 3 MASS     stats  depends   FALSE</span></a>
+<a class="sourceLine" id="cb2-21" title="21"><span class="co">#&gt; 4 MASS     utils  depends   FALSE</span></a>
+<a class="sourceLine" id="cb2-22" title="22"><span class="co">#&gt; 5 MASS   lattice suggests   FALSE</span></a>
+<a class="sourceLine" id="cb2-23" title="23"><span class="co">#&gt; 6 MASS      nlme suggests   FALSE</span></a>
+<a class="sourceLine" id="cb2-24" title="24"><span class="co">#&gt; 7 MASS      nnet suggests   FALSE</span></a>
+<a class="sourceLine" id="cb2-25" title="25"><span class="co">#&gt; 8 MASS  survival suggests   FALSE</span></a></code></pre></div>
+<p>For more information on different types of dependencies, see <a href="https://cran.r-project.org/doc/manuals/r-release/R-exts.html#Package-Dependencies">the official guidelines</a> and <a href="https://r-pkgs.org/description.html">https://r-pkgs.org/description.html</a>.</p>
+<p>In the output, the column <code>type</code> is the type of the dependency converted to lower case. Also, <code>LinkingTo</code> is now converted to <code>linking to</code> for consistency.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" title="1"><span class="kw">get_dep</span>(<span class="st">&quot;xts&quot;</span>, <span class="st">&quot;LinkingTo&quot;</span>)</a>
+<a class="sourceLine" id="cb3-2" title="2"><span class="co">#&gt;   from  to       type reverse</span></a>
+<a class="sourceLine" id="cb3-3" title="3"><span class="co">#&gt; 1  xts zoo linking to   FALSE</span></a>
+<a class="sourceLine" id="cb3-4" title="4"><span class="kw">get_dep</span>(<span class="st">&quot;xts&quot;</span>, <span class="st">&quot;linking to&quot;</span>)</a>
+<a class="sourceLine" id="cb3-5" title="5"><span class="co">#&gt;   from  to       type reverse</span></a>
+<a class="sourceLine" id="cb3-6" title="6"><span class="co">#&gt; 1  xts zoo linking to   FALSE</span></a></code></pre></div>
+<p>For the reverse dependencies, the substring <code>&quot;reverse_&quot;</code> will not be shown in <code>type</code>; instead the <code>reverse</code> column will be <code>TRUE</code>. This can be illustrated by the following:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" title="1"><span class="kw">get_dep</span>(<span class="st">&quot;abc&quot;</span>, <span class="kw">c</span>(<span class="st">&quot;depends&quot;</span>, <span class="st">&quot;reverse_depends&quot;</span>))</a>
+<a class="sourceLine" id="cb4-2" title="2"><span class="co">#&gt;   from       to    type reverse</span></a>
+<a class="sourceLine" id="cb4-3" title="3"><span class="co">#&gt; 1  abc abc.data depends   FALSE</span></a>
+<a class="sourceLine" id="cb4-4" title="4"><span class="co">#&gt; 2  abc     nnet depends   FALSE</span></a>
+<a class="sourceLine" id="cb4-5" title="5"><span class="co">#&gt; 3  abc quantreg depends   FALSE</span></a>
+<a class="sourceLine" id="cb4-6" title="6"><span class="co">#&gt; 4  abc     MASS depends   FALSE</span></a>
+<a class="sourceLine" id="cb4-7" title="7"><span class="co">#&gt; 5  abc   locfit depends   FALSE</span></a>
+<a class="sourceLine" id="cb4-8" title="8"><span class="co">#&gt; 6  abc abctools depends    TRUE</span></a>
+<a class="sourceLine" id="cb4-9" title="9"><span class="co">#&gt; 7  abc  EasyABC depends    TRUE</span></a>
+<a class="sourceLine" id="cb4-10" title="10"><span class="kw">get_dep</span>(<span class="st">&quot;xts&quot;</span>, <span class="kw">c</span>(<span class="st">&quot;linking to&quot;</span>, <span class="st">&quot;reverse linking to&quot;</span>))</a>
+<a class="sourceLine" id="cb4-11" title="11"><span class="co">#&gt;   from      to       type reverse</span></a>
+<a class="sourceLine" id="cb4-12" title="12"><span class="co">#&gt; 1  xts     zoo linking to   FALSE</span></a>
+<a class="sourceLine" id="cb4-13" title="13"><span class="co">#&gt; 2  xts RcppXts linking to    TRUE</span></a>
+<a class="sourceLine" id="cb4-14" title="14"><span class="co">#&gt; 3  xts     TTR linking to    TRUE</span></a></code></pre></div>
 <p>Theoretically, for each forward dependency</p>
 <pre><code>#&gt;   from to type reverse
 #&gt; 1    A  B    c   FALSE</code></pre>
@@ -357,8 +365,8 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <pre><code>#&gt;   from to type reverse
 #&gt; 1    B  A    c    TRUE</code></pre>
 <p>Aligning the <code>type</code> in the forward and reverse dependencies enables this to be checked easily.</p>
-<p>To obtain all 8 types of dependencies, we can use <code>&quot;all&quot;</code> in the second argument, instead of typing a character vector of all 8 words:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" title="1">df0.abc &lt;-<span class="st"> </span><span class="kw">get_dep_df</span>(<span class="st">&quot;abc&quot;</span>, <span class="st">&quot;all&quot;</span>)</a>
+<p>To obtain all types of dependencies, we can use <code>&quot;all&quot;</code> in the second argument, instead of typing a character vector of all 10 words:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" title="1">df0.abc &lt;-<span class="st"> </span><span class="kw">get_dep</span>(<span class="st">&quot;abc&quot;</span>, <span class="st">&quot;all&quot;</span>)</a>
 <a class="sourceLine" id="cb7-2" title="2">df0.abc</a>
 <a class="sourceLine" id="cb7-3" title="3"><span class="co">#&gt;    from         to     type reverse</span></a>
 <a class="sourceLine" id="cb7-4" title="4"><span class="co">#&gt; 1   abc   abc.data  depends   FALSE</span></a>
@@ -366,37 +374,38 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <a class="sourceLine" id="cb7-6" title="6"><span class="co">#&gt; 3   abc   quantreg  depends   FALSE</span></a>
 <a class="sourceLine" id="cb7-7" title="7"><span class="co">#&gt; 4   abc       MASS  depends   FALSE</span></a>
 <a class="sourceLine" id="cb7-8" title="8"><span class="co">#&gt; 5   abc     locfit  depends   FALSE</span></a>
-<a class="sourceLine" id="cb7-9" title="9"><span class="co">#&gt; 9   abc   abctools  depends    TRUE</span></a>
-<a class="sourceLine" id="cb7-10" title="10"><span class="co">#&gt; 10  abc    EasyABC  depends    TRUE</span></a>
-<a class="sourceLine" id="cb7-11" title="11"><span class="co">#&gt; 11  abc ecolottery  imports    TRUE</span></a>
-<a class="sourceLine" id="cb7-12" title="12"><span class="co">#&gt; 12  abc       ouxy  imports    TRUE</span></a>
-<a class="sourceLine" id="cb7-13" title="13"><span class="co">#&gt; 13  abc      poems  imports    TRUE</span></a>
-<a class="sourceLine" id="cb7-14" title="14"><span class="co">#&gt; 15  abc      coala suggests    TRUE</span></a>
-<a class="sourceLine" id="cb7-15" title="15">df0.rstan &lt;-<span class="st"> </span><span class="kw">get_dep_df</span>(<span class="st">&quot;rstan&quot;</span>, <span class="st">&quot;all&quot;</span>)</a>
-<a class="sourceLine" id="cb7-16" title="16">dplyr<span class="op">::</span><span class="kw">count</span>(df0.rstan, type, reverse) <span class="co"># all 8 types</span></a>
+<a class="sourceLine" id="cb7-9" title="9"><span class="co">#&gt; 10  abc   abctools  depends    TRUE</span></a>
+<a class="sourceLine" id="cb7-10" title="10"><span class="co">#&gt; 11  abc    EasyABC  depends    TRUE</span></a>
+<a class="sourceLine" id="cb7-11" title="11"><span class="co">#&gt; 12  abc ecolottery  imports    TRUE</span></a>
+<a class="sourceLine" id="cb7-12" title="12"><span class="co">#&gt; 13  abc       ouxy  imports    TRUE</span></a>
+<a class="sourceLine" id="cb7-13" title="13"><span class="co">#&gt; 14  abc      poems  imports    TRUE</span></a>
+<a class="sourceLine" id="cb7-14" title="14"><span class="co">#&gt; 16  abc      coala suggests    TRUE</span></a>
+<a class="sourceLine" id="cb7-15" title="15">df0.rstan &lt;-<span class="st"> </span><span class="kw">get_dep</span>(<span class="st">&quot;rstan&quot;</span>, <span class="st">&quot;all&quot;</span>) <span class="co"># too many rows to display</span></a>
+<a class="sourceLine" id="cb7-16" title="16">dplyr<span class="op">::</span><span class="kw">count</span>(df0.rstan, type, reverse) <span class="co"># hence the summary using count()</span></a>
 <a class="sourceLine" id="cb7-17" title="17"><span class="co">#&gt;         type reverse  n</span></a>
 <a class="sourceLine" id="cb7-18" title="18"><span class="co">#&gt; 1    depends   FALSE  2</span></a>
 <a class="sourceLine" id="cb7-19" title="19"><span class="co">#&gt; 2    depends    TRUE 24</span></a>
-<a class="sourceLine" id="cb7-20" title="20"><span class="co">#&gt; 3    imports   FALSE 10</span></a>
-<a class="sourceLine" id="cb7-21" title="21"><span class="co">#&gt; 4    imports    TRUE 83</span></a>
-<a class="sourceLine" id="cb7-22" title="22"><span class="co">#&gt; 5 linking to   FALSE  5</span></a>
-<a class="sourceLine" id="cb7-23" title="23"><span class="co">#&gt; 6 linking to    TRUE 70</span></a>
-<a class="sourceLine" id="cb7-24" title="24"><span class="co">#&gt; 7   suggests   FALSE 12</span></a>
-<a class="sourceLine" id="cb7-25" title="25"><span class="co">#&gt; 8   suggests    TRUE 17</span></a></code></pre></div>
-<p>As of 2021-05-10, the packages that have all 8 types of dependencies are gRbase, quanteda, rstan, sf, xts.</p>
+<a class="sourceLine" id="cb7-20" title="20"><span class="co">#&gt; 3   enhances    TRUE  1</span></a>
+<a class="sourceLine" id="cb7-21" title="21"><span class="co">#&gt; 4    imports   FALSE 10</span></a>
+<a class="sourceLine" id="cb7-22" title="22"><span class="co">#&gt; 5    imports    TRUE 86</span></a>
+<a class="sourceLine" id="cb7-23" title="23"><span class="co">#&gt; 6 linking to   FALSE  5</span></a>
+<a class="sourceLine" id="cb7-24" title="24"><span class="co">#&gt; 7 linking to    TRUE 72</span></a>
+<a class="sourceLine" id="cb7-25" title="25"><span class="co">#&gt; 8   suggests   FALSE 12</span></a>
+<a class="sourceLine" id="cb7-26" title="26"><span class="co">#&gt; 9   suggests    TRUE 20</span></a></code></pre></div>
+<p>As of 2021-06-10, there are 0 packages that have all 10 types of dependencies, and 6 packages that have 9 types of dependencies: bigmemory, miceadds, quanteda, rstan, sf, xts.</p>
 </div>
 <div id="building-and-visualising-a-dependency-network" class="section level2">
 <h2>Building and visualising a dependency network</h2>
 <p>To build a dependency network, we have to obtain the dependencies for multiple packages. For illustration, we choose the <a href="https://www.tidyverse.org/packages/">core packages of the tidyverse</a>, and find out what each package <code>Imports</code>. We put all the dependencies into one data frame, in which the package in the <code>from</code> column imports the package in the <code>to</code> column. This is essentially the edge list of the dependency network.</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" title="1">df0.imports &lt;-<span class="st"> </span><span class="kw">rbind</span>(</a>
-<a class="sourceLine" id="cb8-2" title="2">    <span class="kw">get_dep_df</span>(<span class="st">&quot;ggplot2&quot;</span>, <span class="st">&quot;Imports&quot;</span>),</a>
-<a class="sourceLine" id="cb8-3" title="3">    <span class="kw">get_dep_df</span>(<span class="st">&quot;dplyr&quot;</span>, <span class="st">&quot;Imports&quot;</span>),</a>
-<a class="sourceLine" id="cb8-4" title="4">    <span class="kw">get_dep_df</span>(<span class="st">&quot;tidyr&quot;</span>, <span class="st">&quot;Imports&quot;</span>),</a>
-<a class="sourceLine" id="cb8-5" title="5">    <span class="kw">get_dep_df</span>(<span class="st">&quot;readr&quot;</span>, <span class="st">&quot;Imports&quot;</span>),</a>
-<a class="sourceLine" id="cb8-6" title="6">    <span class="kw">get_dep_df</span>(<span class="st">&quot;purrr&quot;</span>, <span class="st">&quot;Imports&quot;</span>),</a>
-<a class="sourceLine" id="cb8-7" title="7">    <span class="kw">get_dep_df</span>(<span class="st">&quot;tibble&quot;</span>, <span class="st">&quot;Imports&quot;</span>),</a>
-<a class="sourceLine" id="cb8-8" title="8">    <span class="kw">get_dep_df</span>(<span class="st">&quot;stringr&quot;</span>, <span class="st">&quot;Imports&quot;</span>),</a>
-<a class="sourceLine" id="cb8-9" title="9">    <span class="kw">get_dep_df</span>(<span class="st">&quot;forcats&quot;</span>, <span class="st">&quot;Imports&quot;</span>)</a>
+<a class="sourceLine" id="cb8-2" title="2">    <span class="kw">get_dep</span>(<span class="st">&quot;ggplot2&quot;</span>, <span class="st">&quot;Imports&quot;</span>),</a>
+<a class="sourceLine" id="cb8-3" title="3">    <span class="kw">get_dep</span>(<span class="st">&quot;dplyr&quot;</span>, <span class="st">&quot;Imports&quot;</span>),</a>
+<a class="sourceLine" id="cb8-4" title="4">    <span class="kw">get_dep</span>(<span class="st">&quot;tidyr&quot;</span>, <span class="st">&quot;Imports&quot;</span>),</a>
+<a class="sourceLine" id="cb8-5" title="5">    <span class="kw">get_dep</span>(<span class="st">&quot;readr&quot;</span>, <span class="st">&quot;Imports&quot;</span>),</a>
+<a class="sourceLine" id="cb8-6" title="6">    <span class="kw">get_dep</span>(<span class="st">&quot;purrr&quot;</span>, <span class="st">&quot;Imports&quot;</span>),</a>
+<a class="sourceLine" id="cb8-7" title="7">    <span class="kw">get_dep</span>(<span class="st">&quot;tibble&quot;</span>, <span class="st">&quot;Imports&quot;</span>),</a>
+<a class="sourceLine" id="cb8-8" title="8">    <span class="kw">get_dep</span>(<span class="st">&quot;stringr&quot;</span>, <span class="st">&quot;Imports&quot;</span>),</a>
+<a class="sourceLine" id="cb8-9" title="9">    <span class="kw">get_dep</span>(<span class="st">&quot;forcats&quot;</span>, <span class="st">&quot;Imports&quot;</span>)</a>
 <a class="sourceLine" id="cb8-10" title="10">)</a>
 <a class="sourceLine" id="cb8-11" title="11"><span class="kw">head</span>(df0.imports)</a>
 <a class="sourceLine" id="cb8-12" title="12"><span class="co">#&gt;      from        to    type reverse</span></a>
