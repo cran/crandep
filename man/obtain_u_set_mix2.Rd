@@ -8,7 +8,6 @@ obtain_u_set_mix2(
   df,
   powerlaw = FALSE,
   positive = FALSE,
-  name = TRUE,
   u_max = 2000L,
   log_diff_max = 11,
   alpha_init = 0.01,
@@ -34,8 +33,6 @@ obtain_u_set_mix2(
 
 \item{positive}{Boolean, is alpha positive (TRUE) or unbounded (FALSE, default)?}
 
-\item{name}{Boolean; if the column \code{name} exists, are its unique values printed?}
-
 \item{u_max}{Positive integer for the maximum threshold}
 
 \item{log_diff_max}{Positive real number, the value such that thresholds with profile posterior density not less than the maximum posterior density - \code{log_diff_max} will be kept}
@@ -57,5 +54,5 @@ A list: \code{u_set} is the vector of thresholds with high posterior density, \c
 \code{obtain_u_set_mix2} computes the profile posterior density of the threshold u, and subsets the thresholds (and other parameter values) with high profile values i.e. within a certain value from the maximum posterior density. The set of u can then be used for \code{\link{mcmc_mix2}}.
 }
 \seealso{
-\code{\link{mcmc_mix2_wrapper}} that wraps \code{obtain_u_set_mix2} and \code{\link{mcmc_mix2}}
+\code{\link{mcmc_mix2_wrapper}} that wraps \code{obtain_u_set_mix2} and \code{\link{mcmc_mix2}}, \code{\link{obtain_u_set_mix1}} for the equivalent function for the TZP-power-law mixture model
 }
