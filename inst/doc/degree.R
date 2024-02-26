@@ -88,6 +88,19 @@ mcmc0.imports$pars |>
   ggplot2::theme_bw(12)
 
 ## -----------------------------------------------------------------------------
+marg0.imports <-
+  marg_pow(
+    data.frame(x = x, count = counts),
+    lower = 1.001,
+    upper = 20.0,
+    m_alpha = m_alpha,
+    s_alpha = s_alpha
+  )
+ggplot2::last_plot() +
+  ggplot2::geom_line(ggplot2::aes(alpha, density), marg0.imports$posterior, col = 2) +
+  ggplot2::coord_cartesian(xlim = range(mcmc0.imports$pars$alpha))
+
+## -----------------------------------------------------------------------------
 n0 <- sum(df1.imports$frequency) # TOTAL number of data points in x
 ## or n0 <- length(x)
 df0.fitted <- mcmc0.imports$fitted
