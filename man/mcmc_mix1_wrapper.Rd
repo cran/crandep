@@ -20,6 +20,8 @@ mcmc_mix1_wrapper(
   thin = 1L,
   burn = 10000L,
   freq = 100L,
+  invts = 0.001^((0:8)/8),
+  mc3_or_marg = TRUE,
   xmax = 1e+05
 )
 }
@@ -39,6 +41,10 @@ mcmc_mix1_wrapper(
 \item{burn}{Non-negative integer representing the burn-in of the MCMC}
 
 \item{freq}{Positive integer representing the frequency of the sampled values being printed}
+
+\item{invts}{Vector of the inverse temperatures for Metropolis-coupled MCMC (if mc3_or_marg = TRUE) or power posterior (if mc3_or_marg = FALSE)}
+
+\item{mc3_or_marg}{Boolean, is Metropolis-coupled MCMC to be used? Ignored if invts = c(1.0)}
 
 \item{xmax}{Scalar (default 100000), positive integer limit for computing the normalising constant}
 }

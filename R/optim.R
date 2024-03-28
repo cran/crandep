@@ -23,7 +23,7 @@ lpost_pow <- function(alpha, df, m_alpha, s_alpha) {
 #' @param s_alpha Positive real number, standard deviation of the prior normal distribution for alpha
 #' @param by Positive real number, the width of subintervals between lower and upper, for numerical integration and posterior density evaluation
 #' @importFrom pracma integral
-#' @return A list: \code{log.marginal} is the marginal log-likelihood, \code{posterior} is a data frame of non-zero posterior densities
+#' @return A list: \code{log_marginal} is the marginal log-likelihood, \code{posterior} is a data frame of non-zero posterior densities
 #' @export
 marg_pow <- function(df, lower, upper, m_alpha, s_alpha, by = 0.001) {
   if (lower <= 1.0) {
@@ -51,8 +51,8 @@ marg_pow <- function(df, lower, upper, m_alpha, s_alpha, by = 0.001) {
   alphas <- seq(lower, upper, by = by)
   post <- data.frame(alpha = alphas, density = foo(alphas, lmarg1))
   list(
-    log.marginal = lmarg1,
-    posterior = post[post$density > 0.0, ]
+    log_marginal = lmarg1,
+    posterior = post[post$density > .Machine$double.eps, ]
   )
 }
 
@@ -63,7 +63,8 @@ marg_pow <- function(df, lower, upper, m_alpha, s_alpha, by = 0.001) {
 #' @return A scalar of the log-posterior density
 #' @keywords internal
 lpost_pol_wrapper <- function(alpha, x, count, ...) {
-  lpost_pol(x, count, alpha, 1.0, ...)
+  llik_temp <- -Inf # won't get updated
+  lpost_pol(x, count, alpha, 1.0, llik = llik_temp, invt = 1.0, ...)
 }
 
 #' Wrapper of mcmc_pol
@@ -83,8 +84,9 @@ lpost_pol_wrapper <- function(alpha, x, count, ...) {
 #' @param thin Positive integer representing the thinning in the MCMC
 #' @param burn Non-negative integer representing the burn-in of the MCMC
 #' @param freq Positive integer representing the frequency of the sampled values being printed
-#' @param mc3 Boolean, is Metropolis-coupled MCMC to be used?
-#' @param invts Vector of the inverse temperatures for Metropolis-coupled MCMC
+#' @param invts Vector of the inverse temperatures for Metropolis-coupled MCMC (if mc3_or_marg = TRUE) or power posterior (if mc3_or_marg = FALSE)
+#' @param mc3_or_marg Boolean, is Metropolis-coupled MCMC to be used? Ignored if invts = c(1.0)
+#' @param xmax Scalar (default 100000), positive integer limit for computing the normalising constant
 #' @return A list returned by \code{mcmc_pol}
 #' @export
 mcmc_pol_wrapper <- function(df, seed,
@@ -101,8 +103,10 @@ mcmc_pol_wrapper <- function(df, seed,
                              thin = 2e+1L,
                              burn = 1e+5L,
                              freq = 1e+3L,
-                             mc3 = FALSE,
-                             invts = 0.001 ^ ((0:8)/8)) {
+                             invts = 0.001 ^ ((0:8)/8),
+                             mc3_or_marg = TRUE,
+                             xmax = 100000) {
+  mc3 <- mc3_or_marg && (length(invts) > 1)
   set.seed(seed)
   t0 <- system.time({
     mcmc0 <-
@@ -122,7 +126,9 @@ mcmc_pol_wrapper <- function(df, seed,
         thin = thin * ifelse(mc3, 2L, 1L),
         burn = burn,
         freq = freq,
-        invt = if (mc3) invts else 1.0
+        invt = invts,
+        mc3_or_marg = mc3_or_marg,
+        xmax = xmax
       )
   })
   mcmc0$scalars$seed <- as.integer(seed)
@@ -237,6 +243,7 @@ obtain_u_set_mix1 <- function(df,
       la <- obj_bulk$value + obj_pol$value
       par_bulk <- obj_bulk$par
       par_pol <- c(obj_pol$par, 1.0)
+      llik_temp <- -Inf # won't get updated
       lb <-
         lpost_mix1(
           x, count, u,
@@ -245,7 +252,8 @@ obtain_u_set_mix1 <- function(df,
           m_alpha1, s_alpha1,
           a_theta1, b_theta1,
           m_alpha2, s_alpha2,
-          positive, xmax
+          positive, xmax,
+          llik = llik_temp, invt = 1.0
         )
       lc <-
         llik_bulk(
@@ -329,6 +337,8 @@ obtain_u_set_mix1 <- function(df,
 #' @param thin Positive integer representing the thinning in the MCMC
 #' @param burn Non-negative integer representing the burn-in of the MCMC
 #' @param freq Positive integer representing the frequency of the sampled values being printed
+#' @param invts Vector of the inverse temperatures for Metropolis-coupled MCMC (if mc3_or_marg = TRUE) or power posterior (if mc3_or_marg = FALSE)
+#' @param mc3_or_marg Boolean, is Metropolis-coupled MCMC to be used? Ignored if invts = c(1.0)
 #' @param xmax Scalar (default 100000), positive integer limit for computing the normalising constant
 #' @return A list returned by \code{mcmc_mix1}
 #' @export
@@ -346,6 +356,8 @@ mcmc_mix1_wrapper <- function(df, seed,
                               thin = 1L,
                               burn = 1e+4L,
                               freq = 1e+2L,
+                              invts = 0.001 ^ ((0:8)/8),
+                              mc3_or_marg = TRUE,
                               xmax = 100000) {
   print("Obtaining profile")
   obj0 <-
@@ -382,6 +394,8 @@ mcmc_mix1_wrapper <- function(df, seed,
         thin = thin,
         burn = burn,
         freq = freq,
+        invt = invts,
+        mc3_or_marg = mc3_or_marg,
         xmax = xmax
       )
   })
@@ -538,6 +552,7 @@ obtain_u_set_mix2 <- function(df,
         par_bulk <- c(par_bulk, 1.0)
       }
       par_igpd <- obj_igpd$par
+      llik_temp <- -Inf # won't get updated
       lb <-
         lpost_mix2(
           x, count, u,
@@ -549,7 +564,9 @@ obtain_u_set_mix2 <- function(df,
           m_shape, s_shape,
           a_sigma, b_sigma,
           powerlaw = powerlaw,
-          positive = positive
+          positive = positive,
+          llik = llik_temp,
+          invt = 1.0
         )
       lc <-
         llik_bulk(
@@ -580,6 +597,7 @@ obtain_u_set_mix2 <- function(df,
           shape = par_igpd[1],
           sigma = par_igpd[2],
           ll = ll,
+          ll_check = llik_temp,
           lp = lp,
           l_check = l_check
         )
@@ -638,8 +656,8 @@ obtain_u_set_mix2 <- function(df,
 #' @param thin Positive integer representing the thinning in the MCMC
 #' @param burn Non-negative integer representing the burn-in of the MCMC
 #' @param freq Positive integer representing the frequency of the sampled values being printed
-#' @param mc3 Boolean, is Metropolis-coupled MCMC to be used?
-#' @param invts Vector of the inverse temperatures for Metropolis-coupled MCMC; ignored if mc3 = FALSE
+#' @param invts Vector of the inverse temperatures for Metropolis-coupled MCMC (if mc3_or_marg = TRUE) or power posterior (if mc3_or_marg = FALSE)
+#' @param mc3_or_marg Boolean, is Metropolis-coupled MCMC to be used? Ignored if invts = c(1.0)
 #' @return A list returned by \code{mcmc_mix2}
 #' @export
 mcmc_mix2_wrapper <- function(df, seed,
@@ -661,8 +679,8 @@ mcmc_mix2_wrapper <- function(df, seed,
                               thin = 2e+1L,
                               burn = 1e+5L,
                               freq = 1e+3L,
-                              mc3 = FALSE,
-                              invts = 0.001 ^ ((0:8)/8)) {
+                              invts = 0.001 ^ ((0:8)/8),
+                              mc3_or_marg = TRUE) {
   print("Obtaining profile")
   obj0 <-
     obtain_u_set_mix2(
@@ -674,6 +692,7 @@ mcmc_mix2_wrapper <- function(df, seed,
       a_sigma = a_sigma, b_sigma = b_sigma
     )
   print("Running MCMC")
+  mc3 <- mc3_or_marg && (length(invts) > 1)
   set.seed(seed)
   t0 <- system.time({
     mcmc0 <-
@@ -704,7 +723,8 @@ mcmc_mix2_wrapper <- function(df, seed,
         thin = thin * ifelse(mc3, 2L, 1L),
         burn = burn,
         freq = freq,
-        invt = if (mc3) invts else 1.0
+        invt = invts,
+        mc3_or_marg = mc3_or_marg
       )
   })
   mcmc0$scalars$seed <- as.integer(seed)
@@ -928,6 +948,7 @@ obtain_u_set_mix3 <- function(df,
             par_pol2 <- c(par_pol2, 1.0)
           }
           par_igpd <- obj_igpd$par
+          llik_temp <- -Inf # won't get updated
           lb <-
             lpost_mix3(
               x, count, v, u,
@@ -944,7 +965,9 @@ obtain_u_set_mix3 <- function(df,
               powerlaw1 = powerlaw1,
               powerlaw2 = powerlaw2,
               positive1 = positive1,
-              positive2 = positive2
+              positive2 = positive2,
+              llik = llik_temp,
+              invt = 1.0
             )
           lc <-
             llik_bulk(
@@ -1057,8 +1080,8 @@ obtain_u_set_mix3 <- function(df,
 #' @param thin Positive integer representing the thinning in the MCMC
 #' @param burn Non-negative integer representing the burn-in of the MCMC
 #' @param freq Positive integer representing the frequency of the sampled values being printed
-#' @param mc3 Boolean, is Metropolis-coupled MCMC to be used?
-#' @param invts Vector of the inverse temperatures for Metropolis-coupled MCMC; ignored if mc3 = FALSE
+#' @param invts Vector of the inverse temperatures for Metropolis-coupled MCMC (if mc3_or_marg = TRUE) or power posterior (if mc3_or_marg = FALSE)
+#' @param mc3_or_marg Boolean, is Metropolis-coupled MCMC to be used? Ignored if invts = c(1.0)
 #' @return A list returned by \code{mcmc_mix3}
 #' @export
 mcmc_mix3_wrapper <- function(df, seed,
@@ -1084,8 +1107,8 @@ mcmc_mix3_wrapper <- function(df, seed,
                               thin = 2e+1L,
                               burn = 1e+5L,
                               freq = 1e+3L,
-                              mc3 = FALSE,
-                              invts = 0.001 ^ ((0:8)/8)) {
+                              invts = 0.001 ^ ((0:8)/8),
+                              mc3_or_marg = TRUE) {
   print("Obtaining profile")
   obj0 <-
     obtain_u_set_mix3(
@@ -1102,6 +1125,7 @@ mcmc_mix3_wrapper <- function(df, seed,
       a_sigma = a_sigma, b_sigma = b_sigma
     )
   print("Running MCMC")
+  mc3 <- mc3_or_marg && (length(invts) > 1)
   set.seed(seed)
   t0 <- system.time({
     mcmc0 <-
@@ -1144,7 +1168,8 @@ mcmc_mix3_wrapper <- function(df, seed,
         thin = thin * ifelse(mc3, 2L, 1L),
         burn = burn,
         freq = freq,
-        invt = if (mc3) invts else 1.0
+        invt = invts,
+        mc3_or_marg = mc3_or_marg
       )
   })
   mcmc0$scalars$seed <- as.integer(seed)
