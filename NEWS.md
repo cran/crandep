@@ -1,3 +1,13 @@
+# crandep 0.3.8 (2024-04-30)
+
+## Functions
+- Changes all instances of `xmax` to `x_max` for consistency.
+- The default of `invts` in `mcmc_*_wrapper()` is set to 1.0 for no Metropolis coupling or power posterior.
+- Add the argument `u_max` (and `v_max` if applicable) with defaults in `mcmc_mix*_wrapper()`.
+
+## Others
+- The <arXiv:YYMM.NNNNN> in Description is changed to <doi:10.48550/arXiv.YYMM.NNNNN> to adhere to the new practice.
+
 # crandep 0.3.7 (2024-03-28)
 
 ## Functions
