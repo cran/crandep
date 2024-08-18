@@ -19,7 +19,7 @@ df0.imports <-
 head(df0.imports, 10)
 
 ## -----------------------------------------------------------------------------
-g0.rev_imports <- get_graph_all_packages(type = "reverse imports")
+g0.rev_imports <- get_graph_all_packages(type = "imports", reverse = TRUE)
 d0.rev_imports <- g0.rev_imports |> igraph::degree(mode = "out") # note the difference to above
 df0.rev_imports <-
   data.frame(name = names(d0.rev_imports), degree = as.integer(d0.rev_imports)) |>

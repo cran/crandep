@@ -18,8 +18,8 @@ get_dep("xts", "LinkingTo")
 get_dep("xts", "linking to")
 
 ## -----------------------------------------------------------------------------
-get_dep("abc", c("depends", "reverse_depends"))
-get_dep("xts", c("linking to", "reverse linking to"))
+get_dep("abc", c("depends", "depends"), reverse = TRUE)
+get_dep("xts", c("linking to", "linking to"), reverse = TRUE)
 
 ## ---- echo=FALSE--------------------------------------------------------------
 data.frame(from = "A", to = "B", type = "c", reverse = FALSE)
@@ -28,10 +28,10 @@ data.frame(from = "A", to = "B", type = "c", reverse = FALSE)
 data.frame(from = "B", to = "A", type = "c", reverse = TRUE)
 
 ## -----------------------------------------------------------------------------
-df0.abc <- get_dep("abc", "all")
-df0.abc
-df0.rstan <- get_dep("rstan", "all") # too many rows to display
-dplyr::count(df0.rstan, type, reverse) # hence the summary using count()
+df0.rstan <- get_dep("rstan", "all")
+dplyr::count(df0.rstan, type)
+df1.rstan <- get_dep("rstan", "all", reverse = TRUE) # too many rows to display
+dplyr::count(df1.rstan, type) # hence the summary using count()
 
 ## -----------------------------------------------------------------------------
 df0.imports <- rbind(

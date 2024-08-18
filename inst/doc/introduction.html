@@ -334,7 +334,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <a class="sourceLine" id="cb1-3" title="3"><span class="kw">library</span>(igraph)</a></code></pre></div>
 <div id="one-or-multiple-types-of-dependencies" class="section level2">
 <h2>One or multiple types of dependencies</h2>
-<p>To obtain the information about various kinds of dependencies of a package, we can use the function <code>get_dep()</code> which takes the package name and the type of dependencies as the first and second arguments, respectively. Currently, the second argument accepts a character vector of one or more of the following words: <code>Depends</code>, <code>Imports</code>, <code>LinkingTo</code>, <code>Suggests</code>, <code>Enhances</code>, <code>Reverse_depends</code>, <code>Reverse_imports</code>, <code>Reverse_linking_to</code>, <code>Reverse_suggests</code>, and <code>Reverse_enhances</code>, or any variations in their letter cases, or if the underscore &quot;_&quot; is replaced by a space.</p>
+<p>To obtain the information about various kinds of dependencies of a package, we can use the function <code>get_dep()</code> which takes the package name and the type of dependencies as the first and second arguments, respectively. Currently, the second argument accepts a character vector of one or more of the following words: <code>Depends</code>, <code>Imports</code>, <code>LinkingTo</code>, <code>Suggests</code>, <code>Enhances</code>, or any variations in their letter cases, or if <code>LinkingTo</code> is written as <code>Linking_To</code> or <code>Linking To</code>.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" title="1"><span class="kw">get_dep</span>(<span class="st">&quot;dplyr&quot;</span>, <span class="st">&quot;Imports&quot;</span>)</a>
 <a class="sourceLine" id="cb2-2" title="2"><span class="co">#&gt;     from         to    type reverse</span></a>
 <a class="sourceLine" id="cb2-3" title="3"><span class="co">#&gt; 1  dplyr        cli imports   FALSE</span></a>
@@ -368,22 +368,16 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <a class="sourceLine" id="cb3-4" title="4"><span class="kw">get_dep</span>(<span class="st">&quot;xts&quot;</span>, <span class="st">&quot;linking to&quot;</span>)</a>
 <a class="sourceLine" id="cb3-5" title="5"><span class="co">#&gt;   from  to       type reverse</span></a>
 <a class="sourceLine" id="cb3-6" title="6"><span class="co">#&gt; 1  xts zoo linking to   FALSE</span></a></code></pre></div>
-<p>For the reverse dependencies, the substring <code>&quot;reverse_&quot;</code> will not be shown in <code>type</code>; instead the <code>reverse</code> column will be <code>TRUE</code>. This can be illustrated by the following:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" title="1"><span class="kw">get_dep</span>(<span class="st">&quot;abc&quot;</span>, <span class="kw">c</span>(<span class="st">&quot;depends&quot;</span>, <span class="st">&quot;reverse_depends&quot;</span>))</a>
+<p>For the reverse dependencies, instead of including the prefix “Reverse” in <code>type</code>, we use the argument <code>reverse</code>:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" title="1"><span class="kw">get_dep</span>(<span class="st">&quot;abc&quot;</span>, <span class="kw">c</span>(<span class="st">&quot;depends&quot;</span>, <span class="st">&quot;depends&quot;</span>), <span class="dt">reverse =</span> <span class="ot">TRUE</span>)</a>
 <a class="sourceLine" id="cb4-2" title="2"><span class="co">#&gt;   from       to    type reverse</span></a>
-<a class="sourceLine" id="cb4-3" title="3"><span class="co">#&gt; 1  abc abc.data depends   FALSE</span></a>
-<a class="sourceLine" id="cb4-4" title="4"><span class="co">#&gt; 2  abc     nnet depends   FALSE</span></a>
-<a class="sourceLine" id="cb4-5" title="5"><span class="co">#&gt; 3  abc quantreg depends   FALSE</span></a>
-<a class="sourceLine" id="cb4-6" title="6"><span class="co">#&gt; 4  abc     MASS depends   FALSE</span></a>
-<a class="sourceLine" id="cb4-7" title="7"><span class="co">#&gt; 5  abc   locfit depends   FALSE</span></a>
-<a class="sourceLine" id="cb4-8" title="8"><span class="co">#&gt; 6  abc abctools depends    TRUE</span></a>
-<a class="sourceLine" id="cb4-9" title="9"><span class="co">#&gt; 7  abc  EasyABC depends    TRUE</span></a>
-<a class="sourceLine" id="cb4-10" title="10"><span class="kw">get_dep</span>(<span class="st">&quot;xts&quot;</span>, <span class="kw">c</span>(<span class="st">&quot;linking to&quot;</span>, <span class="st">&quot;reverse linking to&quot;</span>))</a>
-<a class="sourceLine" id="cb4-11" title="11"><span class="co">#&gt;   from       to       type reverse</span></a>
-<a class="sourceLine" id="cb4-12" title="12"><span class="co">#&gt; 1  xts      zoo linking to   FALSE</span></a>
-<a class="sourceLine" id="cb4-13" title="13"><span class="co">#&gt; 2  xts ichimoku linking to    TRUE</span></a>
-<a class="sourceLine" id="cb4-14" title="14"><span class="co">#&gt; 3  xts  RcppXts linking to    TRUE</span></a>
-<a class="sourceLine" id="cb4-15" title="15"><span class="co">#&gt; 4  xts      TTR linking to    TRUE</span></a></code></pre></div>
+<a class="sourceLine" id="cb4-3" title="3"><span class="co">#&gt; 1  abc abctools depends    TRUE</span></a>
+<a class="sourceLine" id="cb4-4" title="4"><span class="co">#&gt; 2  abc  EasyABC depends    TRUE</span></a>
+<a class="sourceLine" id="cb4-5" title="5"><span class="kw">get_dep</span>(<span class="st">&quot;xts&quot;</span>, <span class="kw">c</span>(<span class="st">&quot;linking to&quot;</span>, <span class="st">&quot;linking to&quot;</span>), <span class="dt">reverse =</span> <span class="ot">TRUE</span>)</a>
+<a class="sourceLine" id="cb4-6" title="6"><span class="co">#&gt;   from       to       type reverse</span></a>
+<a class="sourceLine" id="cb4-7" title="7"><span class="co">#&gt; 1  xts ichimoku linking to    TRUE</span></a>
+<a class="sourceLine" id="cb4-8" title="8"><span class="co">#&gt; 2  xts  RcppXts linking to    TRUE</span></a>
+<a class="sourceLine" id="cb4-9" title="9"><span class="co">#&gt; 3  xts      TTR linking to    TRUE</span></a></code></pre></div>
 <p>Theoretically, for each forward dependency</p>
 <pre><code>#&gt;   from to type reverse
 #&gt; 1    A  B    c   FALSE</code></pre>
@@ -391,31 +385,22 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <pre><code>#&gt;   from to type reverse
 #&gt; 1    B  A    c    TRUE</code></pre>
 <p>Aligning the <code>type</code> in the forward and reverse dependencies enables this to be checked easily.</p>
-<p>To obtain all types of dependencies, we can use <code>&quot;all&quot;</code> in the second argument, instead of typing a character vector of all 10 words:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" title="1">df0.abc &lt;-<span class="st"> </span><span class="kw">get_dep</span>(<span class="st">&quot;abc&quot;</span>, <span class="st">&quot;all&quot;</span>)</a>
-<a class="sourceLine" id="cb7-2" title="2">df0.abc</a>
-<a class="sourceLine" id="cb7-3" title="3"><span class="co">#&gt;    from         to     type reverse</span></a>
-<a class="sourceLine" id="cb7-4" title="4"><span class="co">#&gt; 1   abc   abc.data  depends   FALSE</span></a>
-<a class="sourceLine" id="cb7-5" title="5"><span class="co">#&gt; 2   abc       nnet  depends   FALSE</span></a>
-<a class="sourceLine" id="cb7-6" title="6"><span class="co">#&gt; 3   abc   quantreg  depends   FALSE</span></a>
-<a class="sourceLine" id="cb7-7" title="7"><span class="co">#&gt; 4   abc       MASS  depends   FALSE</span></a>
-<a class="sourceLine" id="cb7-8" title="8"><span class="co">#&gt; 5   abc     locfit  depends   FALSE</span></a>
-<a class="sourceLine" id="cb7-9" title="9"><span class="co">#&gt; 10  abc   abctools  depends    TRUE</span></a>
-<a class="sourceLine" id="cb7-10" title="10"><span class="co">#&gt; 11  abc    EasyABC  depends    TRUE</span></a>
-<a class="sourceLine" id="cb7-11" title="11"><span class="co">#&gt; 12  abc ecolottery  imports    TRUE</span></a>
-<a class="sourceLine" id="cb7-12" title="12"><span class="co">#&gt; 14  abc      coala suggests    TRUE</span></a>
-<a class="sourceLine" id="cb7-13" title="13">df0.rstan &lt;-<span class="st"> </span><span class="kw">get_dep</span>(<span class="st">&quot;rstan&quot;</span>, <span class="st">&quot;all&quot;</span>) <span class="co"># too many rows to display</span></a>
-<a class="sourceLine" id="cb7-14" title="14">dplyr<span class="op">::</span><span class="kw">count</span>(df0.rstan, type, reverse) <span class="co"># hence the summary using count()</span></a>
-<a class="sourceLine" id="cb7-15" title="15"><span class="co">#&gt;         type reverse   n</span></a>
-<a class="sourceLine" id="cb7-16" title="16"><span class="co">#&gt; 1    depends   FALSE   1</span></a>
-<a class="sourceLine" id="cb7-17" title="17"><span class="co">#&gt; 2    depends    TRUE  23</span></a>
-<a class="sourceLine" id="cb7-18" title="18"><span class="co">#&gt; 3   enhances    TRUE   3</span></a>
-<a class="sourceLine" id="cb7-19" title="19"><span class="co">#&gt; 4    imports   FALSE  10</span></a>
-<a class="sourceLine" id="cb7-20" title="20"><span class="co">#&gt; 5    imports    TRUE 133</span></a>
-<a class="sourceLine" id="cb7-21" title="21"><span class="co">#&gt; 6 linking to   FALSE   5</span></a>
-<a class="sourceLine" id="cb7-22" title="22"><span class="co">#&gt; 7 linking to    TRUE 117</span></a>
-<a class="sourceLine" id="cb7-23" title="23"><span class="co">#&gt; 8   suggests   FALSE  12</span></a>
-<a class="sourceLine" id="cb7-24" title="24"><span class="co">#&gt; 9   suggests    TRUE  32</span></a></code></pre></div>
+<p>To obtain all types of dependencies, we can use <code>&quot;all&quot;</code> in the second argument, instead of typing a character vector of all 5 words:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" title="1">df0.rstan &lt;-<span class="st"> </span><span class="kw">get_dep</span>(<span class="st">&quot;rstan&quot;</span>, <span class="st">&quot;all&quot;</span>)</a>
+<a class="sourceLine" id="cb7-2" title="2">dplyr<span class="op">::</span><span class="kw">count</span>(df0.rstan, type)</a>
+<a class="sourceLine" id="cb7-3" title="3"><span class="co">#&gt;         type  n</span></a>
+<a class="sourceLine" id="cb7-4" title="4"><span class="co">#&gt; 1    depends  1</span></a>
+<a class="sourceLine" id="cb7-5" title="5"><span class="co">#&gt; 2    imports 10</span></a>
+<a class="sourceLine" id="cb7-6" title="6"><span class="co">#&gt; 3 linking to  5</span></a>
+<a class="sourceLine" id="cb7-7" title="7"><span class="co">#&gt; 4   suggests 12</span></a>
+<a class="sourceLine" id="cb7-8" title="8">df1.rstan &lt;-<span class="st"> </span><span class="kw">get_dep</span>(<span class="st">&quot;rstan&quot;</span>, <span class="st">&quot;all&quot;</span>, <span class="dt">reverse =</span> <span class="ot">TRUE</span>) <span class="co"># too many rows to display</span></a>
+<a class="sourceLine" id="cb7-9" title="9">dplyr<span class="op">::</span><span class="kw">count</span>(df1.rstan, type) <span class="co"># hence the summary using count()</span></a>
+<a class="sourceLine" id="cb7-10" title="10"><span class="co">#&gt;         type   n</span></a>
+<a class="sourceLine" id="cb7-11" title="11"><span class="co">#&gt; 1    depends  20</span></a>
+<a class="sourceLine" id="cb7-12" title="12"><span class="co">#&gt; 2   enhances   3</span></a>
+<a class="sourceLine" id="cb7-13" title="13"><span class="co">#&gt; 3    imports 139</span></a>
+<a class="sourceLine" id="cb7-14" title="14"><span class="co">#&gt; 4 linking to 120</span></a>
+<a class="sourceLine" id="cb7-15" title="15"><span class="co">#&gt; 5   suggests  33</span></a></code></pre></div>
 </div>
 <div id="building-and-visualising-a-dependency-network" class="section level2">
 <h2>Building and visualising a dependency network</h2>

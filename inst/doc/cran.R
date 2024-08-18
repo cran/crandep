@@ -32,7 +32,7 @@ g0.depends
 
 ## ----get_graph_all_packages_rev, eval = FALSE---------------------------------
 #  # Not run
-#  g0.rev_depends <- get_graph_all_packages(type = "reverse depends")
+#  g0.rev_depends <- get_graph_all_packages(type = "depends", reverse = TRUE)
 #  g0.rev_depends
 
 ## ----forward_equivalent-------------------------------------------------------
