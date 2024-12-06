@@ -69,14 +69,3 @@ old.par <- par(mar = rep(0.0, 4))
 plot(g0.core, vertex.label.cex = 1.5)
 par(old.par)
 
-## -----------------------------------------------------------------------------
-topo_sort_kahn(g0.core)
-
-## -----------------------------------------------------------------------------
-set.seed(387L); topo_sort_kahn(g0.core, random = TRUE)
-
-## -----------------------------------------------------------------------------
-df0.topo <- topo_sort_kahn(g0.imports)
-head(df0.topo)
-tail(df0.topo)
-
