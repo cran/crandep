@@ -17,7 +17,7 @@ cran_dependencies
 dplyr::count(cran_dependencies, type, reverse)
 
 ## ----get_dep_all_packages-----------------------------------------------------
-df0.cran <- get_dep_all_packages()
+df0.cran <- get_dep_all_packages()$dependencies
 head(df0.cran)
 dplyr::count(df0.cran, type, reverse) # numbers in general larger than above
 
