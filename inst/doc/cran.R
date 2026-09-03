@@ -21,7 +21,7 @@ df0.cran <- get_dep_all_packages()$dependencies
 head(df0.cran)
 dplyr::count(df0.cran, type, reverse) # numbers in general larger than above
 
-## ---- echo = FALSE------------------------------------------------------------
+## ----echo = FALSE-------------------------------------------------------------
 df1.cran <- df0.cran |> dplyr::count(from, type, reverse) |> dplyr::count(from)
 v9.all <- dplyr::filter(df1.cran, n == 9L)$from
 v0.all <- dplyr::filter(df1.cran, n == 10L)$from
@@ -31,9 +31,9 @@ g0.depends <- get_graph_all_packages(type = "depends")
 g0.depends
 
 ## ----get_graph_all_packages_rev, eval = FALSE---------------------------------
-#  # Not run
-#  g0.rev_depends <- get_graph_all_packages(type = "depends", reverse = TRUE)
-#  g0.rev_depends
+# # Not run
+# g0.rev_depends <- get_graph_all_packages(type = "depends", reverse = TRUE)
+# g0.rev_depends
 
 ## ----forward_equivalent-------------------------------------------------------
 g1.depends <- df0.cran |>
@@ -42,11 +42,11 @@ g1.depends <- df0.cran |>
 g1.depends # same as g0.depends
 
 ## ----reverse_equivalent, eval = FALSE-----------------------------------------
-#  # Not run
-#  g1.rev_depends <- df0.cran |>
-#    dplyr::filter(type == "depends" & reverse) |>
-#    df_to_graph(nodelist = dplyr::rename(df0.cran, name = from))
-#  g1.rev_depends # should be same as g0.rev_depends
+# # Not run
+# g1.rev_depends <- df0.cran |>
+#   dplyr::filter(type == "depends" & reverse) |>
+#   df_to_graph(nodelist = dplyr::rename(df0.cran, name = from))
+# g1.rev_depends # should be same as g0.rev_depends
 
 ## ----is_dag-------------------------------------------------------------------
 igraph::is_dag(g0.depends)

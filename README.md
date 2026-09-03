@@ -106,10 +106,9 @@ get_dep("abc", c("depends", "depends"), reverse = TRUE)
 #> 1  abc abctools depends    TRUE
 #> 2  abc  EasyABC depends    TRUE
 get_dep("xts", c("linking to", "linking to"), reverse = TRUE)
-#>   from       to       type reverse
-#> 1  xts ichimoku linking to    TRUE
-#> 2  xts  RcppXts linking to    TRUE
-#> 3  xts      TTR linking to    TRUE
+#>   from      to       type reverse
+#> 1  xts RcppXts linking to    TRUE
+#> 2  xts     TTR linking to    TRUE
 ```
 
 Theoretically, for each forward dependency
@@ -139,22 +138,22 @@ dplyr::count(df0.rstan, type)
 df1.rstan <- get_dep("rstan", "all", reverse = TRUE) # too many rows to display
 dplyr::count(df1.rstan, type) # hence the summary using count()
 #>         type   n
-#> 1    depends  20
+#> 1    depends  14
 #> 2   enhances   3
-#> 3    imports 139
-#> 4 linking to 120
-#> 5   suggests  33
+#> 3    imports 183
+#> 4 linking to 142
+#> 5   suggests  62
 ```
 
-As of 2024-08-02, there are 0 packages that have all 10 types of
-dependencies, and 6 packages that have 9 types of dependencies: Matrix,
-bigmemory, miceadds, quanteda, rstan, xts.
+As of 2026-09-03, there are 0 packages that have all 10 types of
+dependencies, and 8 packages that have 9 types of dependencies: Matrix,
+bigmemory, ergm, igraph, miceadds, quanteda, rstan, xts.
 
 ## Building and visualising a dependency network
 
 To build a dependency network, we have to obtain the dependencies for
 multiple packages. For illustration, we choose the [core packages of the
-tidyverse](https://www.tidyverse.org/packages/), and find out what each
+tidyverse](https://tidyverse.org/packages/), and find out what each
 package `Imports`. We put all the dependencies into one data frame, in
 which the package in the `from` column imports the package in the `to`
 column. This is essentially the edge list of the dependency network.
@@ -173,19 +172,19 @@ df0.imports <- rbind(
 head(df0.imports)
 #>      from        to    type reverse
 #> 1 ggplot2       cli imports   FALSE
-#> 2 ggplot2      glue imports   FALSE
-#> 3 ggplot2 grDevices imports   FALSE
-#> 4 ggplot2      grid imports   FALSE
-#> 5 ggplot2    gtable imports   FALSE
-#> 6 ggplot2   isoband imports   FALSE
+#> 2 ggplot2 grDevices imports   FALSE
+#> 3 ggplot2      grid imports   FALSE
+#> 4 ggplot2    gtable imports   FALSE
+#> 5 ggplot2   isoband imports   FALSE
+#> 6 ggplot2 lifecycle imports   FALSE
 tail(df0.imports)
 #>       from        to    type reverse
-#> 73 forcats       cli imports   FALSE
-#> 74 forcats      glue imports   FALSE
-#> 75 forcats lifecycle imports   FALSE
-#> 76 forcats  magrittr imports   FALSE
-#> 77 forcats     rlang imports   FALSE
-#> 78 forcats    tibble imports   FALSE
+#> 72 forcats       cli imports   FALSE
+#> 73 forcats      glue imports   FALSE
+#> 74 forcats lifecycle imports   FALSE
+#> 75 forcats  magrittr imports   FALSE
+#> 76 forcats     rlang imports   FALSE
+#> 77 forcats    tibble imports   FALSE
 ```
 
 ## All types of dependencies, in a data frame
@@ -229,27 +228,27 @@ dependencies using `get_dep_all_packages()`, which requires no
 arguments:
 
 ``` r
-df0.cran <- get_dep_all_packages()
+df0.cran <- get_dep_all_packages()$dependencies
 head(df0.cran)
-#>       from         to    type reverse
-#> 3 AATtools   magrittr imports   FALSE
-#> 4 AATtools      dplyr imports   FALSE
-#> 5 AATtools doParallel imports   FALSE
-#> 6 AATtools    foreach imports   FALSE
-#> 7   ABACUS    ggplot2 imports   FALSE
-#> 8   ABACUS      shiny imports   FALSE
+#>        from        to    type reverse
+#> 1 a11yShiny     shiny imports   FALSE
+#> 2 a11yShiny htmltools imports   FALSE
+#> 3 a11yShiny        DT imports   FALSE
+#> 4 a11yShiny   ggplot2 imports   FALSE
+#> 5 a11yShiny     rlang imports   FALSE
+#> 6       a5R       cli imports   FALSE
 dplyr::count(df0.cran, type, reverse) # numbers in general larger than above
 #>          type reverse      n
-#> 1     depends   FALSE  10525
-#> 2     depends    TRUE   9097
-#> 3    enhances   FALSE    638
-#> 4    enhances    TRUE    652
-#> 5     imports   FALSE 103771
-#> 6     imports    TRUE  95407
-#> 7  linking to   FALSE   5872
-#> 8  linking to    TRUE   6273
-#> 9    suggests   FALSE  65414
-#> 10   suggests    TRUE  72346
+#> 1     depends   FALSE   9937
+#> 2     depends    TRUE   8646
+#> 3    enhances   FALSE    628
+#> 4    enhances    TRUE    626
+#> 5     imports   FALSE 130810
+#> 6     imports    TRUE 119679
+#> 7  linking to   FALSE   6934
+#> 8  linking to    TRUE   7412
+#> 9    suggests   FALSE  90651
+#> 10   suggests    TRUE  98521
 ```
 
 ## Network of one type of dependencies, as an igraph object
@@ -262,17 +261,17 @@ edges) and order (number of nodes).
 ``` r
 g0.depends <- get_graph_all_packages(type = "depends")
 g0.depends
-#> IGRAPH 4c9c1ff DN-- 4627 7491 -- 
+#> IGRAPH 9b1bc0a DN-- 4381 7042 -- 
 #> + attr: name (v/c)
-#> + edges from 4c9c1ff (vertex names):
-#>  [1] A3         ->xtable   A3         ->pbapply 
-#>  [3] abc        ->abc.data abc        ->nnet    
-#>  [5] abc        ->quantreg abc        ->MASS    
-#>  [7] abc        ->locfit   ABCp2      ->MASS    
-#>  [9] abctools   ->abc      abctools   ->abind   
-#> [11] abctools   ->plyr     abctools   ->Hmisc   
-#> [13] abd        ->nlme     abd        ->lattice 
-#> [15] abd        ->mosaic   abodOutlier->cluster 
+#> + edges from 9b1bc0a (vertex names):
+#>  [1] abc         ->abc.data   abc         ->locfit     abc         ->MASS      
+#>  [4] abc         ->nnet       abc         ->quantreg   abctools    ->abc       
+#>  [7] abctools    ->abind      abctools    ->Hmisc      abctools    ->plyr      
+#> [10] abd         ->lattice    abd         ->mosaic     abd         ->nlme      
+#> [13] abodOutlier ->cluster    absorber    ->fda        absorber    ->Matrix    
+#> [16] absorber    ->sparsegl   abundant    ->glasso     Ac3net      ->data.table
+#> [19] acc         ->mhsmm      accelmissing->mice       accelmissing->pscl      
+#> [22] accessrmd   ->ggplot2    accrual     ->tcltk2     accrualPlot ->lubridate 
 #> + ... omitted several edges
 ```
 
@@ -299,16 +298,16 @@ g1.depends <- df0.cran |>
   dplyr::filter(type == "depends" & !reverse) |>
   df_to_graph(nodelist = dplyr::rename(df0.cran, name = from))
 g1.depends # same as g0.depends
-#> IGRAPH 0cb388d DN-- 4627 7491 -- 
+#> IGRAPH d95e45a DN-- 4381 7042 -- 
 #> + attr: name (v/c), type (e/c), reverse (e/l)
-#> + edges from 0cb388d (vertex names):
-#>  [1] A3         ->xtable   A3         ->pbapply 
-#>  [3] abc        ->abc.data abc        ->nnet    
-#>  [5] abc        ->quantreg abc        ->MASS    
-#>  [7] abc        ->locfit   ABCp2      ->MASS    
-#>  [9] abctools   ->abc      abctools   ->abind   
-#> [11] abctools   ->plyr     abctools   ->Hmisc   
-#> [13] abd        ->nlme     abd        ->lattice 
-#> [15] abd        ->mosaic   abodOutlier->cluster 
+#> + edges from d95e45a (vertex names):
+#>  [1] abctools   ->abind             abctools   ->Hmisc            
+#>  [3] abctools   ->plyr              abctools   ->abc              
+#>  [5] absorber   ->Matrix            absorber   ->sparsegl         
+#>  [7] absorber   ->fda               acc        ->mhsmm            
+#>  [9] accessrmd  ->ggplot2           accrual    ->tcltk2           
+#> [11] accrualPlot->lubridate         acebayes   ->lhs              
+#> [13] Achilles   ->DatabaseConnector acid       ->gamlss           
+#> [15] acid       ->gamlss.dist       acid       ->Hmisc            
 #> + ... omitted several edges
 ```

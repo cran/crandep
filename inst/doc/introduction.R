@@ -1,4 +1,4 @@
-## ---- include = FALSE---------------------------------------------------------
+## ----include = FALSE----------------------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
@@ -21,10 +21,10 @@ get_dep("xts", "linking to")
 get_dep("abc", c("depends", "depends"), reverse = TRUE)
 get_dep("xts", c("linking to", "linking to"), reverse = TRUE)
 
-## ---- echo=FALSE--------------------------------------------------------------
+## ----echo=FALSE---------------------------------------------------------------
 data.frame(from = "A", to = "B", type = "c", reverse = FALSE)
 
-## ---- echo=FALSE--------------------------------------------------------------
+## ----echo=FALSE---------------------------------------------------------------
 data.frame(from = "B", to = "A", type = "c", reverse = TRUE)
 
 ## -----------------------------------------------------------------------------
@@ -47,7 +47,7 @@ df0.imports <- rbind(
 head(df0.imports)
 tail(df0.imports)
 
-## ---- out.width="660px", out.height="660px", fig.width=12, fig.height=12, fig.show="hold"----
+## ----out.width="660px", out.height="660px", fig.width=12, fig.height=12, fig.show="hold"----
 g0.imports <- igraph::graph_from_data_frame(df0.imports)
 set.seed(1457L)
 old.par <- par(mar = rep(0.0, 4))
@@ -57,7 +57,7 @@ par(old.par)
 ## -----------------------------------------------------------------------------
 igraph::is_dag(g0.imports)
 
-## ---- out.width="660px", out.height="660px", fig.width=12, fig.height=12, fig.show="hold"----
+## ----out.width="660px", out.height="660px", fig.width=12, fig.height=12, fig.show="hold"----
 df0.nodes <-
   data.frame(
     name = c("ggplot2", "dplyr", "tidyr", "readr", "purrr", "tibble", "stringr", "forcats"),
@@ -68,4 +68,15 @@ set.seed(259L)
 old.par <- par(mar = rep(0.0, 4))
 plot(g0.core, vertex.label.cex = 1.5)
 par(old.par)
+
+## -----------------------------------------------------------------------------
+topo_sort_kahn(g0.core)
+
+## -----------------------------------------------------------------------------
+set.seed(387L); topo_sort_kahn(g0.core, random = TRUE)
+
+## -----------------------------------------------------------------------------
+df0.topo <- topo_sort_kahn(g0.imports)
+head(df0.topo)
+tail(df0.topo)
 
